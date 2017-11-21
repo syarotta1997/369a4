@@ -85,42 +85,9 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
         printf("%s need to be maked\n", p->name);
         printf("%d \n",p_inode);
         return p_inode;
-        
     }
 }
 
-
-
-/*
- * A helper function that goes through paths from the root directory and returns 
- */
-void* walk_path(){
-    struct ext2_super_block *sb = (struct ext2_super_block *)(disk + EXT2_BLOCK_SIZE);
-    struct ext2_group_desc *gd = (struct ext2_group_desc *)(disk + (1024*2) );
-    char * b_bitmap = (char *)disk+(1024 * gd->bg_block_bitmap);
-    char * i_bitmap = (char *)disk+(1024 * gd->bg_inode_bitmap);
-    
-    construct_bitmap(DISK_BLOCK, b_bitmap, 'b');
-    construct_bitmap(sb->s_inodes_count, i_bitmap, 'i');
-    
-    for (int i = 0; i < 128; i++){
-        printf("%u ",block_bitmap[i]);
-    }
-    printf("\n");
-    for (int i = 0; i < 32; i++){
-        printf("%u ",inode_bitmap[i]);
-    }
-    printf("\n");
-    ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
-    int result;
-    for (int i_idx = 0; i_idx < 15; i_idx++){
-        if ( ino_table[1].i_block[i_idx] != 0){
-            struct ext2_dir_entry * root = (struct ext2_dir_entry *)(disk + (1024* ino_table[1].i_block[i_idx]) );
-            result = ftree_visit(root, 2 ,p->next);
-        }
-    }
-    return result;
-}
 /* 
  * A helper function that takes an absolute path as an argument and construct
  * a linked list with each node containing the name of a component between 2 slashes
@@ -191,7 +158,32 @@ int main(int argc, char **argv) {
         printf("%s : %s Root directory cannot be created\n",argv[0],p->name);
         exit(1);
     }
-    int result = walk_path();
+    
+    struct ext2_super_block *sb = (struct ext2_super_block *)(disk + EXT2_BLOCK_SIZE);
+    struct ext2_group_desc *gd = (struct ext2_group_desc *)(disk + (1024*2) );
+    char * b_bitmap = (char *)disk+(1024 * gd->bg_block_bitmap);
+    char * i_bitmap = (char *)disk+(1024 * gd->bg_inode_bitmap);
+    
+    construct_bitmap(DISK_BLOCK, b_bitmap, 'b');
+    construct_bitmap(sb->s_inodes_count, i_bitmap, 'i');
+    
+    for (int i = 0; i < 128; i++){
+        printf("%u ",block_bitmap[i]);
+    }
+    printf("\n");
+    for (int i = 0; i < 32; i++){
+        printf("%u ",inode_bitmap[i]);
+    }
+    printf("\n");
+    ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
+    int result;
+    for (int i_idx = 0; i_idx < 15; i_idx++){
+        if ( ino_table[1].i_block[i_idx] != 0){
+            struct ext2_dir_entry * root = (struct ext2_dir_entry *)(disk + (1024* ino_table[1].i_block[i_idx]) );
+            result = ftree_visit(root, 2 ,p->next);
+        }
+    }
+    
     if (result == EEXIST){
         printf("%s : Cannot create directory, %s already exists\n",argv[0],path);
         exit(1);
