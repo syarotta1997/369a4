@@ -27,7 +27,7 @@ void construct_path_linkedlst(char* path);
 struct path_lnk{
     char name[256];
     struct path_lnk* next;
-}
+};
 
 /*
  * Structure of the super block
