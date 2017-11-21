@@ -70,7 +70,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                 //return result;
             }   
         }
-        printf("current count:%d total size:%s",)
+        printf("current count:%d total size:%s\n",count, size);
         if (count == size)
             break;
 
