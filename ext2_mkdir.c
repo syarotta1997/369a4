@@ -98,12 +98,14 @@ int make_dir(unsigned short inum, char* name){
     for(int block = 0; block < 128; block++){
         if (! block_bitmap[block] & 1){
             printf("will allocate block #%d\n",block);
+            break;
         }
     }
     for (int i = 11 ; i < 32 ; i ++){
         if (! inode_bitmap[i] & 1){
              node = ino_table + i;
              printf("will allocate inode #%d\n",i+1);
+             break;
         }
     }
         for (int i = 14; i >= 0; i --){
