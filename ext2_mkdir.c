@@ -71,12 +71,14 @@ void construct_path_linkedlst(char* path){
         char* ptr = strchr(path, '/');
         int index = (int)(ptr - path);
         strncpy(new->name,path,index);
-        printf("%s\n",new->name);
         new->next = NULL;
         cur->next = new;
         cur = cur->next;
         path = path + index + 1;
         count -= strlen(new->name) + 1;
+    }
+    while (struct path_lnk* i = p; i != NULL; i = i->next){
+        printf("%s\n",i->name);
     }
     
 }
