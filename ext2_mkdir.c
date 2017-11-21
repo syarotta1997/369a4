@@ -11,6 +11,8 @@
 #define DISK_BLOCK 128
 
 unsigned char *disk;
+struct ext2_super_block *sb;
+struct ext2_group_desc *gd;
 struct ext2_inode *ino_table;
 unsigned char block_bitmap[128];
 unsigned char inode_bitmap[32];
@@ -204,8 +206,8 @@ int main(int argc, char **argv) {
         printf("%s : %s Root directory cannot be created\n",argv[0],p->name);
         exit(1);
     }
-    struct ext2_super_block *sb = (struct ext2_super_block *)(disk + EXT2_BLOCK_SIZE);
-    struct ext2_group_desc *gd = (struct ext2_group_desc *)(disk + (1024*2) );
+    sb = (struct ext2_super_block *)(disk + EXT2_BLOCK_SIZE);
+    gd = (struct ext2_group_desc *)(disk + (1024*2) );
     construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_block_bitmap), 'b');
     construct_bitmap(sb->s_inodes_count, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
 //    for (int i = 0; i < 128; i++){
