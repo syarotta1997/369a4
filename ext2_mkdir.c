@@ -113,8 +113,8 @@ int allocate_block(int inode_num){
                     for (int i = 0; i < 128; i++){
                         printf("%u ",block_bitmap[i]);
                     }
-    //            set_bitmap((char *)disk+(1024 * gd->bg_block_bitmap),block,'0');
-    //            construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_block_bitmap), 'b');
+                set_bitmap((char *)disk+(1024 * gd->bg_block_bitmap),block,'0');
+                construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_block_bitmap), 'b');
                 for (int i = 0; i < 13 ; i ++){
                     if ( (ino_table+inode_num)->i_block[i] == 0){
                         (ino_table+inode_num)->i_block[i] = block;
