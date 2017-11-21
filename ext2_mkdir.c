@@ -152,8 +152,9 @@ void construct_path_linkedlst(char* path){
         count -= strlen(new->name) + 1;
     }
     for (struct path_lnk* i = p; i != NULL; i = i->next){
-        printf("%s\n",i->name);
+        printf("%s/",i->name);
     }
+    puts("");
 }
 
 int main(int argc, char **argv) {
