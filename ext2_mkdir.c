@@ -84,7 +84,7 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
         printf("%s need to be maked\n", p->name);
             char names[dir->name_len+1];
             memset(names, '\0', dir->name_len+1);
-            strncpy(names, cur->name, dir->name_len);
+            strncpy(names, dir->name, dir->name_len);
             printf("%s\n",names);
         
     }
