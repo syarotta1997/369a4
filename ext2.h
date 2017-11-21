@@ -28,7 +28,6 @@ struct path_lnk{
 };
 void* walk_path();
 void construct_path_linkedlst(char* path);
-void destroy_list();
 
 
 /*

@@ -143,18 +143,6 @@ void construct_path_linkedlst(char* path){
         printf("%s\n",i->name);
     }
 }
-/*
- * A function that cleans all malloc-ed struct path lnks in this program
- */
-void destroy_list(){
-    struct path_lnk* cur = p;
-    while (cur != NULL){
-        struct path_lnk* to_free = cur;
-        cur = cur->next;
-        free(to_free);
-    }
-    printf("path link list destroyed\n");
-}
 
 int main(int argc, char **argv) {
 
@@ -181,6 +169,11 @@ int main(int argc, char **argv) {
     walk_path();
 //    free();
 //    free();
-    destroy_list();
+    struct path_lnk* cur = p;
+    while (cur != NULL){
+        struct path_lnk* to_free = cur;
+        cur = cur->next;
+        free(to_free);
+    }
     return 0;
 }
