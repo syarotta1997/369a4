@@ -91,7 +91,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     }
 }
 
-int mk_dir(unsigned short inum, char* name){
+int make_dir(unsigned short inum, char* name){
     struct ext2_dir_entry * dir;
     struct ext2_inode* node;
     int count,size,inode_num,block_num;
@@ -214,7 +214,7 @@ int main(int argc, char **argv) {
     }
     //no error given, return is the parent directory i_node of dir to make
     else{
-        mkdir(result, new_dir);
+        make_dir(result, new_dir);
     }
     //Free all allocated memories
     struct path_lnk* cur = p;
