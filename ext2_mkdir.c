@@ -142,12 +142,12 @@ int make_dir(unsigned short inum, char* name){
             
              printf("will allocate inode #%d\n",i+1);
              set_bitmap((char *)disk+(1024 * gd->bg_inode_bitmap),i,'1');
-            construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
+            construct_bitmap(32, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
                 for (int i = 0; i < 32;i++){
                     printf("%u ",inode_bitmap[i]);
                 }
             set_bitmap((char *)disk+(1024 *  gd->bg_inode_bitmap),i,'0');
-            construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
+            construct_bitmap(32, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
             
             node->i_blocks = 2;
             node->i_file_acl = 0;
