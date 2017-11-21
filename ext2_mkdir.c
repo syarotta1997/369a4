@@ -83,8 +83,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     }
     else{//makes the directory
         printf("%s need to be maked\n", p->name);
-        struct ext2_dir_entry * parent = (struct ext2_dir_entry *)(disk + (1024* ino_table[p_inode-1]));;
-        printf("%d \n",count)
+        printf("%d \n",p_inode);
         return p_inode;
         
     }
