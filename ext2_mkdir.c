@@ -66,9 +66,11 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                         result = ftree_visit(new, cur->inode,p->next);
                     }
                 }
-                return result;
+                
+                //return result;
             }   
         }
+        printf("current count:%d total size:%s",)
         if (count == size)
             break;
 
@@ -83,6 +85,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     }
     else{//makes the directory
         printf("%s need to be maked\n", p->name);
+        
         printf("%d \n",p_inode);
         return p_inode;
     }
@@ -161,13 +164,13 @@ int main(int argc, char **argv) {
     struct ext2_group_desc *gd = (struct ext2_group_desc *)(disk + (1024*2) );
     construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_block_bitmap), 'b');
     construct_bitmap(sb->s_inodes_count, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
-    for (int i = 0; i < 128; i++){
-        printf("%u ",block_bitmap[i]);
-    }
-    printf("\n");
-    for (int i = 0; i < 32; i++){
-        printf("%u ",inode_bitmap[i]);
-    }
+//    for (int i = 0; i < 128; i++){
+//        printf("%u ",block_bitmap[i]);
+//    }
+//    printf("\n");
+//    for (int i = 0; i < 32; i++){
+//        printf("%u ",inode_bitmap[i]);
+//    }
     printf("\n");
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
     int result;
@@ -177,14 +180,16 @@ int main(int argc, char **argv) {
             result = ftree_visit(root, 2 ,p->next);
         }
     }
-    
     if (result == EEXIST){
         printf("%s : Cannot create directory, %s already exists\n",argv[0],path);
         exit(1);
     }
-    if (result == ENOENT){
+    else if (result == ENOENT){
         printf("%s : Invalid path %s\n",argv[0],path);
         exit(1);
+    }
+    //no error given, return is the parent directory i_node of dir to make
+    else{
     }
     //Free all allocated memories
     struct path_lnk* cur = p;
