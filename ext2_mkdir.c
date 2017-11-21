@@ -78,7 +78,7 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
 /*
  * A helper function that goes through paths from the root directory and returns 
  */
-void* walk_path(unsigned char* disk, struct path_lnk* path){
+void* walk_path(){
     struct ext2_super_block *sb = (struct ext2_super_block *)(disk + EXT2_BLOCK_SIZE);
     struct ext2_group_desc *gd = (struct ext2_group_desc *)(disk + (1024*2) );
     char * b_bitmap = (char *)disk+(1024 * gd->bg_block_bitmap);
@@ -100,7 +100,7 @@ void* walk_path(unsigned char* disk, struct path_lnk* path){
     for (struct path_lnk* i = path; i != NULL; i = i->next){
         printf("%s\n",i->name);
     }
-    int result = ftree_visit(root, path->next);
+    int result = ftree_visit(root, p->next);
     return result;
     
 }
@@ -177,7 +177,7 @@ int main(int argc, char **argv) {
 //    block_bitmap = malloc(sizeof(char)*128);
 //    inode_bitmap = malloc(sizeof(char)*32);
     construct_path_linkedlst(path);
-    walk_path(disk,p);
+    walk_path();
 //    free();
 //    free();
     destroy_list();

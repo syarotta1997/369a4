@@ -26,7 +26,7 @@ struct path_lnk{
     char name[256];
     struct path_lnk* next;
 };
-void* walk_path(unsigned char* disk, struct path_lnk* path);
+void* walk_path();
 void construct_path_linkedlst(char* path);
 void destroy_list();
 
