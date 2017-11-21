@@ -103,36 +103,73 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
         return p_inode;
     }
 }
+int allocate_block(int inode_num){
+        for(int block = 0; block < 128; block++){
+            if (! block_bitmap[block] & 1){
+                printf("will allocate block #%d\n",block);
+                set_bitmap((char *)disk+(1024 * gd->bg_block_bitmap),block,'1');
+                construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_block_bitmap), 'b');
+                    for (int i = 0; i < 128; i++){
+                        printf("%u ",block_bitmap[i]);
+                    }
+    //            set_bitmap((char *)disk+(1024 * gd->bg_block_bitmap),block,'0');
+    //            construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_block_bitmap), 'b');
+                for (int i = 0; i < 13 ; i ++){
+                    if (ino_table+inode_num->i_block[i] == 0){
+                        ino_table+inode_num->i_block[i] = block;
+                        return 0;
+                    } 
+                }
+
+            }
+        }
+        printf("oops,all blocks seems to be occupied\n");
+        return EINVAL;
+}
 
 int make_dir(unsigned short inum, char* name){
     struct ext2_dir_entry * dir;
     struct ext2_inode* node;
     int count,size,inode_num,block_num;
-    for(int block = 0; block < 128; block++){
-        if (! block_bitmap[block] & 1){
-            printf("will allocate block #%d\n",block);
-            set_bitmap((char *)disk+(1024 * gd->bg_block_bitmap),block,'1');
-            construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_block_bitmap), 'b');
-                for (int i = 0; i < 128; i++){
-                    printf("%u ",block_bitmap[i]);
-                }
-            set_bitmap((char *)disk+(1024 * gd->bg_block_bitmap),block,'0');
-            construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_block_bitmap), 'b');
-            block_num = block;
-            
-            break;
-        }
-    }
+    //Allocating block sector
+
+    // Allocating and writing to new inode section
     for (int i = 11 ; i < 32 ; i ++){
         if (! inode_bitmap[i] & 1){
              node = ino_table + i;
              printf("will allocate inode #%d\n",i+1);
-             break;
+             set_bitmap((char *)disk+(1024 * gd-> gd->bg_inode_bitmap),block_num,'1');
+            construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
+                for (int i = 0; i < 128; i++){
+                    printf("%u ",block_bitmap[i]);
+                }
+            set_bitmap((char *)disk+(1024 *  gd->bg_inode_bitmap),block_num,'0');
+            construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
+            inode_num = i;
+            allocate_block(inode_num);
+            node = ino_table+i;
+            node->i_blocks = 2;
+            node->i_file_acl = 0;
+            node->i_dir_acl = 0;
+            node->i_faddr = 0;
+            node->i_uid = 0;
+            node->i_gid = 0;
+            node->osd1 = 0;
+            node->i_generation = 0;
+            node->i_size = 1024;
+            node->i_links_count = 2;
+            node->i_mode = EXT2_S_IFDIR;
+            printf("done initializing inode\n");
+            dir = (struct ext2_dir_entry *)node->i_block[0];
+            break;
         }
     }
+    //updating links in directory blocks
         for (int i = 14; i >= 0; i --){
-            if ( ino_table[inum-1].i_block[i] == 0){
-                dir = (struct ext2_dir_entry *)(disk + (1024* ino_table[inum-1].i_block[i]) );
+            if ( ino_table[inum-1].i_block[i] != 0){
+                (ino_table+inum-1)->i_block[i] = block;
+                printf ("linked block to ino_table %d\n",(ino_table+inum-1)->i_block[i]);
+                
 //                dir->file_type = EXT2_FT_DIR;
             }
         }
