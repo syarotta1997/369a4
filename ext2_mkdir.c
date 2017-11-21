@@ -115,8 +115,8 @@ int allocate_block(int inode_num){
     //            set_bitmap((char *)disk+(1024 * gd->bg_block_bitmap),block,'0');
     //            construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_block_bitmap), 'b');
                 for (int i = 0; i < 13 ; i ++){
-                    if (ino_table+inode_num->i_block[i] == 0){
-                        ino_table+inode_num->i_block[i] = block;
+                    if ( (ino_table+inode_num)->i_block[i] == 0){
+                        (ino_table+inode_num)->i_block[i] = block;
                         return 0;
                     } 
                 }
@@ -138,7 +138,7 @@ int make_dir(unsigned short inum, char* name){
         if (! inode_bitmap[i] & 1){
              node = ino_table + i;
              printf("will allocate inode #%d\n",i+1);
-             set_bitmap((char *)disk+(1024 * gd-> gd->bg_inode_bitmap),block_num,'1');
+             set_bitmap((char *)disk+(1024 * gd->bg_inode_bitmap),block_num,'1');
             construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
                 for (int i = 0; i < 128; i++){
                     printf("%u ",block_bitmap[i]);
@@ -167,8 +167,6 @@ int make_dir(unsigned short inum, char* name){
     //updating links in directory blocks
         for (int i = 14; i >= 0; i --){
             if ( ino_table[inum-1].i_block[i] != 0){
-                (ino_table+inum-1)->i_block[i] = block;
-                printf ("linked block to ino_table %d\n",(ino_table+inum-1)->i_block[i]);
                 
 //                dir->file_type = EXT2_FT_DIR;
             }
