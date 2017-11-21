@@ -96,7 +96,7 @@ int mk_dir(unsigned short inum, char* name){
     struct ext2_inode* node;
     int count,size,inode_num,block_num;
     for(int block = 0; block < 128; block++){
-        if (! block_bitmap[i] & 1){
+        if (! block_bitmap[block] & 1){
             printf("will allocate block #%d\n",block);
         }
     }
