@@ -78,11 +78,14 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
         printf("%s: not found\n",p->name);
         return ENOENT;
     }
-    else{
+    else{//makes the directory
         printf("%s need to be maked\n", p->name);
+        printf("at %s\n",dir->name);
     }
       
 }
+
+
 
 /*
  * A helper function that goes through paths from the root directory and returns 
@@ -112,9 +115,7 @@ void* walk_path(){
             result = ftree_visit(root, p->next);
         }
     }
-    
     return result;
-    
 }
 /* 
  * A helper function that takes an absolute path as an argument and construct
@@ -178,8 +179,6 @@ int main(int argc, char **argv) {
         perror("mmap");
         exit(1);
     }
-//    block_bitmap = malloc(sizeof(char)*128);
-//    inode_bitmap = malloc(sizeof(char)*32);
     construct_path_linkedlst(path);
     if ( (strcmp(p->name,"/"))==0 && p->next==NULL){
         printf("%s : %s Root directory cannot be created\n",argv[0],p->name);
@@ -194,9 +193,7 @@ int main(int argc, char **argv) {
         printf("%s : Invalid path %s\n",argv[0],path);
         exit(1);
     }
-        
-//    free();
-//    free();
+    //Free all allocated memories
     struct path_lnk* cur = p;
     while (cur != NULL){
         struct path_lnk* to_free = cur;
