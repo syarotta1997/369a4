@@ -21,6 +21,10 @@
 /* The ext2 block size used in the assignment. */
 #define EXT2_BLOCK_SIZE 1024
 
+//Self defined function declarations*/
+void* walk_path(char* path);
+
+
 /*
  * Structure of the super block
  */
