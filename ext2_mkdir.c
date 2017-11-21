@@ -96,6 +96,7 @@ void destroy_list(){
         cur = cur->next;
         free(to_free);
     }
+    printf("path link list destroyed\n");
 }
 
 int main(int argc, char **argv) {
