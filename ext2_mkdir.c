@@ -43,19 +43,18 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
        int size = ino_table[dir->inode - 1].i_size;
        printf("%d,%d\n",count,dir->inode);
        while ( count <= size ){
-           printf("%s\n",dir->name);
+           
            if (dir->file_type == EXT2_FT_DIR){
                char name[dir->name_len+1];
                memset(name, '\0', dir->name_len+1);
                strncpy(name, dir->name, dir->name_len);
-               
+               printf("%s\n",name);
                if (strcmp(name,p->name) == 0){
                    if (p->next == NULL){
                        return EEXIST;
                    }
                    return ftree_visit(dir, p->next);
-               }
-               
+               }   
                
            }
            if (count == size)
@@ -97,7 +96,6 @@ void* walk_path(unsigned char* disk, struct path_lnk* path){
     printf("\n");
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
     struct ext2_dir_entry * root = (struct ext2_dir_entry *)(disk + (1024* ino_table[1].i_block[0]) );
-    printf("%s\n",root->name);
     int result = ftree_visit(root, path);
     return result;
     
