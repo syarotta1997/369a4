@@ -43,7 +43,8 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
        int size = ino_table[dir->inode - 1].i_size;
        printf("%d,%d\n",count,size);
        while ( count <= size ){
-           
+           if (count == size)
+                   break;
            if (dir->file_type == EXT2_FT_DIR){
                char name[dir->name_len+1];
                memset(name, '\0', dir->name_len+1);
@@ -53,12 +54,12 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
                    if (p->next == NULL){
                        return EEXIST;
                    }
-                   return ftree_visit(dir, p->next);
+                   struct ext2_dir_entry * new = (struct ext2_dir_entry *)(disk + (1024* ino_table[dir->inode-1].i_block[0]) )
+                   return ftree_visit(new, p->next);
                }   
                
            }
-           if (count == size)
-                   break;
+           
            dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
            count += (int)dir->rec_len;
        }
