@@ -63,11 +63,11 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                 for (int index = 0; index < 15; index++){
                     if (ino_table[cur->inode-1].i_block[index] != 0 ){
                         new = (struct ext2_dir_entry *)(disk + (1024* ino_table[cur->inode-1].i_block[index]));
-                        result = ftree_visit(new, cur->inode,p->next);
+                        return ftree_visit(new, cur->inode,p->next);
                     }
                 }
                 
-                //return result;
+                
             }   
         }
         printf("current count:%d total size:%d\n",count, size);
@@ -81,7 +81,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     // if any component in path is not found, return error
     if (result == ENOENT || result == EEXIST)
         return result;
-    else if (p->next != NULL && strcmp(p->next->name,new_dir) != 0){
+    else if (p->next != NULL){
         printf("%s: not found\n",p->name);
         return ENOENT;
     }
