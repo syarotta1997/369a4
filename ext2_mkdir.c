@@ -54,18 +54,17 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
             strncpy(name, cur->name, cur->name_len);
             printf("%s\n",name);
             if (strcmp(name,p->name) == 0){
-            if (p->next == NULL){
-                return EEXIST;
-            }
-            //iterate all 15 pointers in i_block array and recursively search for path
-            for (int index = 0; index < 15; index++){
-                if (ino_table[cur->inode-1].i_block[index] != 0 ){
-                    new = (struct ext2_dir_entry *)(disk + (1024* ino_table[cur->inode-1].i_block[index]));
-                    dir = new;
-                    result = ftree_visit(new, p->next);
+                if (p->next == NULL){
+                    return EEXIST;
                 }
-            }
-            return result;
+                //iterate all 15 pointers in i_block array and recursively search for path
+                for (int index = 0; index < 15; index++){
+                    if (ino_table[cur->inode-1].i_block[index] != 0 ){
+                        new = (struct ext2_dir_entry *)(disk + (1024* ino_table[cur->inode-1].i_block[index]));
+                        result = ftree_visit(new, p->next);
+                    }
+                }
+                return result;
             }   
         }
         if (count == size)
@@ -82,7 +81,7 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
     }
     else{//makes the directory
         printf("%s need to be maked\n", p->name);
-        printf("at %s\n",dir->name);
+        printf("at %s\n",new->name);
     }
 }
 
