@@ -52,6 +52,7 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
                printf("%s\n",name);
                if (strcmp(name,p->name) == 0){
                    if (p->next == NULL){
+                       printf("%s: Already exists\n",p->name);
                        return EEXIST;
                    }
                    struct ext2_dir_entry * new = (struct ext2_dir_entry *)(disk + (1024* ino_table[dir->inode-1].i_block[0]));
