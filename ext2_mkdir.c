@@ -38,7 +38,7 @@ void construct_bitmap(size_t const size, void const * const ptr, char type){
     }
 }
 
-int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode, ,struct path_lnk* p){
+int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path_lnk* p){
     struct ext2_dir_entry * new;
     struct ext2_dir_entry * cur = dir;
     
