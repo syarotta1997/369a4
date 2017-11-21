@@ -40,9 +40,11 @@ void construct_bitmap(size_t const size, void const * const ptr, char type){
 int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
     struct ext2_dir_entry * new;
     struct ext2_dir_entry * cur = dir;
+    struct ext2_dir_entry * parent;
     int result;
     int count = (int)cur->rec_len; 
     int size = ino_table[cur->inode - 1].i_size;
+    parent = (struct ext2_dir_entry *)((char *)cur - (cur->rec_len));
       
     printf("%d,%d,%s\n",count,size,p->name);
     
@@ -81,7 +83,8 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
     }
     else{//makes the directory
         printf("%s need to be maked\n", p->name);
-        printf("at %s\n",new->name);
+        printf("parent dir: %s",parent->name);
+        
     }
 }
 
