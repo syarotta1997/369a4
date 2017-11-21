@@ -210,9 +210,9 @@ int main(int argc, char **argv) {
     gd = (struct ext2_group_desc *)(disk + (1024*2) );
     construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_block_bitmap), 'b');
     construct_bitmap(sb->s_inodes_count, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
-//    for (int i = 0; i < 128; i++){
-//        printf("%u ",block_bitmap[i]);
-//    }
+    for (int i = 0; i < 128; i++){
+        printf("%u ",block_bitmap[i]);
+    }
 //    printf("\n");
 //    for (int i = 0; i < 32; i++){
 //        printf("%u ",inode_bitmap[i]);
