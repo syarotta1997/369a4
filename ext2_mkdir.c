@@ -15,6 +15,7 @@ struct ext2_inode *ino_table;
 unsigned char block_bitmap[128];
 unsigned char inode_bitmap[32];
 struct path_lnk* p;
+char* new_dir;
 
 /*
  * A helper function that constructs the local bitmaps given the pointer to disk
@@ -37,10 +38,10 @@ void construct_bitmap(size_t const size, void const * const ptr, char type){
     }
 }
 
-int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
+int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode, ,struct path_lnk* p){
     struct ext2_dir_entry * new;
     struct ext2_dir_entry * cur = dir;
-    struct ext2_dir_entry * parent;
+    
     int result;
     int count = (int)cur->rec_len; 
     int size = ino_table[cur->inode - 1].i_size;
@@ -53,7 +54,7 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
             char name[cur->name_len+1];
             memset(name, '\0', cur->name_len+1);
             strncpy(name, cur->name, cur->name_len);
-            printf("%s\n",name);
+            printf("%s,%d\n",name,count);
             if (strcmp(name,p->name) == 0){
                 if (p->next == NULL){
                     return EEXIST;
@@ -62,7 +63,7 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
                 for (int index = 0; index < 15; index++){
                     if (ino_table[cur->inode-1].i_block[index] != 0 ){
                         new = (struct ext2_dir_entry *)(disk + (1024* ino_table[cur->inode-1].i_block[index]));
-                        result = ftree_visit(new, p->next);
+                        result = ftree_visit(new, cur->inode,p->next);
                     }
                 }
                 return result;
@@ -82,7 +83,9 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
     }
     else{//makes the directory
         printf("%s need to be maked\n", p->name);
-        
+        struct ext2_dir_entry * parent = (struct ext2_dir_entry *)(disk + (1024* ino_table[p_inode-1]));;
+        printf("%d \n",count)
+        return p_inode;
         
     }
 }
@@ -149,6 +152,8 @@ void construct_path_linkedlst(char* path){
         strncpy(new->name,path,index);
         new->next = NULL;
         cur->next = new;
+        if ( (count - strlen(new->name) + 1) <= 0)
+            new_dir = new->name;
         cur = cur->next;
         path = path + index + 1;
         count -= strlen(new->name) + 1;
@@ -160,6 +165,7 @@ void construct_path_linkedlst(char* path){
             printf("%s",i->name);
     }
     puts("");
+    printf("new to be make:%s\n",new_dir);
 }
 
 int main(int argc, char **argv) {
