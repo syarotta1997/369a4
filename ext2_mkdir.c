@@ -70,7 +70,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                 //return result;
             }   
         }
-        printf("current count:%d total size:%s\n",count, size);
+        printf("current count:%d total size:%d\n",count, size);
         if (count == size)
             break;
 
@@ -83,6 +83,8 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
         printf("%s: not found\n",p->name);
         return ENOENT;
     }
+    if (result == ENOENT || result == EEXIST)
+        return result;
     else{//makes the directory
         printf("%s need to be maked\n", p->name);
         
