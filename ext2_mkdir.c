@@ -70,7 +70,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
             printf("%s,%d\n",name,count);
             if (strcmp(name,p->name) == 0){
                 if (p->next == NULL){
-                    return EEXIST;
+                    return -EEXIST;
                 }
                 //iterate all 15 pointers in i_block array and recursively search for path
                 for (int index = 0; index < 15; index++){
@@ -94,7 +94,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     // if any component in path is not found, return error
     if (p->next != NULL){
         printf("%s: not found\n",p->name);
-        return ENOENT;
+        return -ENOENT;
     }
     
     else{//makes the directory
@@ -278,11 +278,11 @@ int main(int argc, char **argv) {
             result = ftree_visit(root, 2 ,p->next);
         }
     }
-    if (result == EEXIST){
+    if (result == -EEXIST){
         printf("%s : Cannot create directory, %s already exists\n",argv[0],path);
         exit(1);
     }
-    else if (result == ENOENT){
+    else if (result == -ENOENT){
         printf("%s : Invalid path %s\n",argv[0],path);
         exit(1);
     }
