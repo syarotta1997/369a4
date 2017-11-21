@@ -10,8 +10,8 @@
 #define DISK_BLOCK 128
 
 unsigned char *disk;
-char block_bitmap[DISK_BLOCK];
-char inode_bitmap[32];
+char block_bitmap[129];
+char inode_bitmap[33];
 
 void construct_bitmap(size_t const size, void const * const ptr, char type){
     unsigned char *b = (unsigned char*) ptr;
@@ -21,6 +21,7 @@ void construct_bitmap(size_t const size, void const * const ptr, char type){
     for (i=0;i<size/8;i++){
         for (j=0;j<8;j++){
             byte = (b[i] >> j) & 1;
+            printf("%u",byte);
             if (type == 'b')
                 block_bitmap[index] = (char)byte;
             else if (type == 'i')
@@ -28,6 +29,7 @@ void construct_bitmap(size_t const size, void const * const ptr, char type){
             index++;
         }
     }
+    printf("\n");
 }
 
 void* walk_path(unsigned char* disk, char* path){
@@ -66,8 +68,8 @@ int main(int argc, char **argv) {
         perror("mmap");
         exit(1);
     }
-    memset(block_bitmap, '\0', 128);
-    memset(inode_bitmap, '\0', 32);
+    memset(block_bitmap, '\0', 129);
+    memset(inode_bitmap, '\0', 33);
     walk_path(disk,path);
     
     return 0;
