@@ -38,6 +38,17 @@ void construct_bitmap(size_t const size, void const * const ptr, char type){
     }
 }
 
+void set_bitmap(void const * const ptr, int index,char type){
+    unsigned char *b = (unsigned char*) ptr;
+    int i, j;
+    i = index / 8;
+    j = index % 8;
+    if (type == '1')
+        *(b + i) = *(b+i) | (1 << j );
+    else if(type == '0')
+        *(b+i) = *(b+i) & ~(1 << j);
+}
+
 int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path_lnk* p){
     struct ext2_dir_entry * new;
     struct ext2_dir_entry * cur = dir;
@@ -98,6 +109,13 @@ int make_dir(unsigned short inum, char* name){
     for(int block = 0; block < 128; block++){
         if (! block_bitmap[block] & 1){
             printf("will allocate block #%d\n",block);
+            set_bitmap((char *)disk+(1024 * gd->bg_block_bitmap),block,'1');
+            construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_block_bitmap), 'b');
+                for (int i = 0; i < 128; i++){
+                    printf("%u ",block_bitmap[i]);
+                }
+            block_num = block;
+            
             break;
         }
     }
