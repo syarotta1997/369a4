@@ -54,11 +54,12 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
                    return ftree_visit(dir, p->next);
                }
                
-               if (count == size)
-                   break;
-               dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
-               count += (int)dir->rec_len;
+               
            }
+           if (count == size)
+                   break;
+           dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
+           count += (int)dir->rec_len;
        }
        //===finished traversing current layer of directory block and does not find target directory
         // if any component in path is not found, return error
