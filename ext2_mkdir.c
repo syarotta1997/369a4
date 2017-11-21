@@ -43,7 +43,7 @@ void* walk_path(unsigned char* disk, char* path){
     for (int i = 0; i < 32; i++){
         printf("%c ",inode_bitmap[i]);
     }
-   
+    return 0;
 //    struct ext2_inode *ino = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
 //    for (int i = 1; i < sb->s_inodes_count ; i++){
 //        if ((i == 1 || i > 10))
