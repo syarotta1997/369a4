@@ -97,6 +97,9 @@ void* walk_path(unsigned char* disk, struct path_lnk* path){
     printf("\n");
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
     struct ext2_dir_entry * root = (struct ext2_dir_entry *)(disk + (1024* ino_table[1].i_block[0]) );
+    for (struct path_lnk* i = path; i != NULL; i = i->next){
+        printf("%s\n",i->name);
+    }
     int result = ftree_visit(root, path->next);
     return result;
     
