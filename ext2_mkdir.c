@@ -117,7 +117,7 @@ int allocate_block(int inode_num){
                 for (int i = 0; i < 13 ; i ++){
                     if ( (ino_table+inode_num)->i_block[i] == 0){
                         (ino_table+inode_num)->i_block[i] = block;
-                        return 0;
+                        return block;
                     } 
                 }
 
@@ -136,7 +136,10 @@ int make_dir(unsigned short inum, char* name){
     // Allocating and writing to new inode section
     for (int i = 11 ; i < 32 ; i ++){
         if (! inode_bitmap[i] & 1){
-             node = ino_table + i;
+            inode_num = i;
+            block_num = allocate_block(inode_num);
+            node = ino_table + i;
+            
              printf("will allocate inode #%d\n",i+1);
              set_bitmap((char *)disk+(1024 * gd->bg_inode_bitmap),block_num,'1');
             construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
@@ -145,9 +148,7 @@ int make_dir(unsigned short inum, char* name){
                 }
             set_bitmap((char *)disk+(1024 *  gd->bg_inode_bitmap),block_num,'0');
             construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
-            inode_num = i;
-            allocate_block(inode_num);
-            node = ino_table+i;
+            
             node->i_blocks = 2;
             node->i_file_acl = 0;
             node->i_dir_acl = 0;
