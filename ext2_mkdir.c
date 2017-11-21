@@ -38,9 +38,10 @@ void construct_bitmap(size_t const size, void const * const ptr, char type){
 }
 
 int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
-    
+       int result;
        int count = (int)dir->rec_len; 
        int size = ino_table[dir->inode - 1].i_size;
+       struct ext2_dir_entry * new;
        printf("%d,%d,%s\n",count,size,p->name);
        while ( count <= size ){
            if (count == size)
@@ -55,8 +56,16 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
                        printf("%s: Already exists\n",p->name);
                        return EEXIST;
                    }
-                   struct ext2_dir_entry * new = (struct ext2_dir_entry *)(disk + (1024* ino_table[dir->inode-1].i_block[0]));
-                   return ftree_visit(new, p->next);
+                   
+                   for (int index = 0; index < 15; index++){
+                       if (ino_table[dir->inode-1].i_block[index] != 0 ){
+                           new = (struct ext2_dir_entry *)(disk + (1024* ino_table[dir->inode-1].i_block[index]));
+                           result = ftree_visit(new, p->next);
+                       }
+                       
+                   }
+                   return result;
+                   
                }   
                
            }
@@ -97,11 +106,14 @@ void* walk_path(){
     }
     printf("\n");
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
-    struct ext2_dir_entry * root = (struct ext2_dir_entry *)(disk + (1024* ino_table[1].i_block[0]) );
-    for (struct path_lnk* i = p; i != NULL; i = i->next){
-        printf("%s\n",i->name);
+    int result;
+    for (int i_idx = 0; i_idx < 15; i_idx++){
+        if ( ino_table[1].i_block[i_idx] != 0){
+            struct ext2_dir_entry * root = (struct ext2_dir_entry *)(disk + (1024* ino_table[1].i_block[i_idx]) );
+            result = ftree_visit(root, p->next);
+        }
     }
-    int result = ftree_visit(root, p->next);
+    
     return result;
     
 }
