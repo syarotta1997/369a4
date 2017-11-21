@@ -77,7 +77,7 @@ void construct_path_linkedlst(char* path){
         path = path + index + 1;
         count -= strlen(new->name) + 1;
     }
-    while (struct path_lnk* i = p; i != NULL; i = i->next){
+    for (struct path_lnk* i = p; i != NULL; i = i->next){
         printf("%s\n",i->name);
     }
     
