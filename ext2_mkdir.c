@@ -152,7 +152,10 @@ void construct_path_linkedlst(char* path){
         count -= strlen(new->name) + 1;
     }
     for (struct path_lnk* i = p; i != NULL; i = i->next){
-        printf("%s/",i->name);
+        if (strcmp(p->name."/")!=0)
+            printf("%s/",i->name);
+        else
+            printf("%s",i->name);
     }
     puts("");
 }
