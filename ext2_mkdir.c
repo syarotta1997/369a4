@@ -10,8 +10,8 @@
 #define DISK_BLOCK 128
 
 unsigned char *disk;
-unsigned char block_bitmap[129];
-unsigned char inode_bitmap[33];
+unsigned char* block_bitmap;
+unsigned char* inode_bitmap;
 
 void construct_bitmap(size_t const size, void const * const ptr, char type){
     unsigned char *b = (unsigned char*) ptr;
@@ -40,11 +40,11 @@ void* walk_path(unsigned char* disk, char* path){
     construct_bitmap(DISK_BLOCK, b_bitmap, 'b');
     construct_bitmap(sb->s_inodes_count, i_bitmap, 'i');
     for (int i = 0; i < 128; i++){
-        printf("%c ",block_bitmap[i]);
+        printf("%u ",block_bitmap[i]);
     }
     printf("\n");
     for (int i = 0; i < 32; i++){
-        printf("%c ",inode_bitmap[i]);
+        printf("%u ",inode_bitmap[i]);
     }
     printf("\n");
     return 0;
@@ -68,8 +68,9 @@ int main(int argc, char **argv) {
         perror("mmap");
         exit(1);
     }
-    memset(block_bitmap, '\0', 129);
-    memset(inode_bitmap, '\0', 33);
+    block_bitmap = malloc(sizeof(char)*128);
+    inode_bitmap = malloc(sizeof(char)*32);
+
     walk_path(disk,path);
     
     return 0;
