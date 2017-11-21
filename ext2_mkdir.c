@@ -86,10 +86,33 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     
     else{//makes the directory
         printf("%s need to be maked\n", p->name);
-        
         printf("%d \n",p_inode);
         return p_inode;
     }
+}
+
+int mk_dir(unsigned short inum, char* name){
+    struct ext2_dir_entry * dir;
+    struct ext2_inode* node;
+    int count,size,inode_num,block_num;
+    for(int block = 0; block < 128; block++){
+        if (! block_bitmap[i] & 1){
+            printf("will allocate block #%d\n",block);
+        }
+    }
+    for (int i = 11 ; i < 32 ; i ++){
+        if (! inode_bitmap[i] & 1){
+             node = ino_table + i;
+             printf("will allocate inode #%d\n",i+1);
+        }
+    }
+        for (int i = 14; i >= 0; i --){
+            if ( ino_table[inum-1].i_block[i] == 0){
+                dir = (struct ext2_dir_entry *)(disk + (1024* ino_table[inum-1].i_block[i]) );
+//                dir->file_type = EXT2_FT_DIR;
+            }
+        }
+    return 0;
 }
 
 /* 
@@ -191,6 +214,7 @@ int main(int argc, char **argv) {
     }
     //no error given, return is the parent directory i_node of dir to make
     else{
+        mkdir(result, new_dir);
     }
     //Free all allocated memories
     struct path_lnk* cur = p;
