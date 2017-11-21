@@ -116,6 +116,8 @@ int make_dir(unsigned short inum, char* name){
                 for (int i = 0; i < 128; i++){
                     printf("%u ",block_bitmap[i]);
                 }
+            set_bitmap((char *)disk+(1024 * gd->bg_block_bitmap),block,'0');
+            construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_block_bitmap), 'b');
             block_num = block;
             
             break;
