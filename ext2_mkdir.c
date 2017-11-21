@@ -54,8 +54,7 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
             printf("%s\n",name);
             if (strcmp(name,p->name) == 0){
             if (p->next == NULL){
-            printf("%s: Already exists\n",p->name);
-            return EEXIST;
+                return EEXIST;
             }
             //iterate all 15 pointers in i_block array and recursively search for path
             for (int index = 0; index < 15; index++){
@@ -183,10 +182,15 @@ int main(int argc, char **argv) {
 //    inode_bitmap = malloc(sizeof(char)*32);
     construct_path_linkedlst(path);
     if ( (strcmp(p->name,"/"))==0 && p->next==NULL){
-        printf("%s: Root directory cannot be created\n",p->name);
+        printf("%s : %s Root directory cannot be created\n",argv[0],p->name);
         exit(1);
     }
-    walk_path();
+    int result = walk_path();
+    if (result == EEXIST){
+        printf("%s : Cannot create directory, %s already exists\n",argv[0],path);
+        exit(1);
+    }
+        
 //    free();
 //    free();
     struct path_lnk* cur = p;
