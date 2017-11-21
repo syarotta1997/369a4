@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <string.h>
 #include "ext2.h"
 #define DISK_BLOCK 128
 
