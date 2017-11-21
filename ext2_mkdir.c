@@ -44,7 +44,6 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
     int result;
     int count = (int)cur->rec_len; 
     int size = ino_table[cur->inode - 1].i_size;
-    parent = (struct ext2_dir_entry *)((char *)cur - (cur->rec_len));
       
     printf("%d,%d,%s\n",count,size,p->name);
     
@@ -83,7 +82,10 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
     }
     else{//makes the directory
         printf("%s need to be maked\n", p->name);
-        printf("parent dir: %s",parent->name);
+            char names[dir->name_len+1];
+            memset(names, '\0', dir->name_len+1);
+            strncpy(names, cur->name, dir->name_len);
+            printf("%s\n",names);
         
     }
 }
