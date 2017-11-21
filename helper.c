@@ -7,18 +7,7 @@
 #include <sys/mman.h>
 #include <string.h>
 #include "ext2.h"
-#define DISK_BLOCK 128
 
-unsigned char *disk;
-struct ext2_inode *ino;
-unsigned char block_bitmap[128];
-unsigned char inode_bitmap[32];
-struct path_lnk* p;
-
-/*
- * A helper function that constructs the local bitmaps given the pointer to disk
- * based on given size and type, constructs the bitmap for block or inode repectively
- */
 void construct_bitmap(size_t const size, void const * const ptr, char type){
     unsigned char *b = (unsigned char*) ptr;
     unsigned char byte;
@@ -34,54 +23,16 @@ void construct_bitmap(size_t const size, void const * const ptr, char type){
             index++;
         }
     }
+    printf("\n");
 }
 
-int ftree_visit(struct ext2_dir_entry * dir ,struct path_lnk* p){
-    
-       int count = (int)dir->rec_len; 
-       int size = ino[dir->inode].i_size;
-       while ( count <= size ){
-           if (dir->file_type == EXT2_FT_DIR){
-               char name[dir->name_len+1];
-               memset(name, '\0', dir->name_len+1);
-               strncpy(name, dir->name, dir->name_len);
-               
-               if (strcmp(name,p->name) == 0){
-                   if (p->next == NULL){
-                       return EEXIST;
-                   }
-                   return ftree_visit(dir, ino[dir->inode],p->next);
-               }
-               
-               if (count == ino[i].i_size)
-                   break;
-               dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
-               count += (int)dir->rec_len;
-           }
-       }
-       //===finished traversing current layer of directory block and does not find target directory
-        // if any component in path is not found, return error
-       if (p->next != NULL){
-           return ENOENT;
-       }
-       else{
-           printf("%s need to be maked\n", p->name);
-       }
-      
-}
-
-/*
- * A helper function that goes through paths from the root directory and returns 
- */
-void* walk_path(unsigned char* disk, struct path_lnk* p){
+void* walk_path(unsigned char* disk, char* path){
     struct ext2_super_block *sb = (struct ext2_super_block *)(disk + EXT2_BLOCK_SIZE);
     struct ext2_group_desc *gd = (struct ext2_group_desc *)(disk + (1024*2) );
     char * b_bitmap = (char *)disk+(1024 * gd->bg_block_bitmap);
     char * i_bitmap = (char *)disk+(1024 * gd->bg_inode_bitmap);
-    
     construct_bitmap(DISK_BLOCK, b_bitmap, 'b');
     construct_bitmap(sb->s_inodes_count, i_bitmap, 'i');
-    
     for (int i = 0; i < 128; i++){
         printf("%u ",block_bitmap[i]);
     }
@@ -90,11 +41,14 @@ void* walk_path(unsigned char* disk, struct path_lnk* p){
         printf("%u ",inode_bitmap[i]);
     }
     printf("\n");
-    ino = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
-    struct ext2_dir_entry * root = ino[1].i_blocks[0];
-    int result = ftree_visit(root, 1, p);
-    return result;
-    
+    return 0;
+    struct ext2_inode *ino = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
+    for (int i = 1; i < sb->s_inodes_count ; i++){
+        if ( (i == 1 || i > 10) && (inode_bitmap[i] & 1)){
+            
+            
+        }
+    }
 }
 /* 
  * A helper function that takes an absolute path as an argument and construct
@@ -133,7 +87,7 @@ void construct_path_linkedlst(char* path){
 /*
  * A function that cleans all malloc-ed struct path lnks in this program
  */
-void destroy_list(){
+void destroy_list(struct path_lnk* p){
     struct path_lnk* cur = p;
     while (cur != NULL){
         struct path_lnk* to_free = cur;
@@ -141,33 +95,4 @@ void destroy_list(){
         free(to_free);
     }
     printf("path link list destroyed\n");
-}
-
-int main(int argc, char **argv) {
-
-    if(argc != 3) {
-        fprintf(stderr, "Usage: %s <image file name> <absolute path to directory>\n", argv[0]);
-        exit(1);
-    }
-    char * path = (char*)argv[2];
-    if (path[0] != '/'){
-        fprintf(stderr, "%s: <absolute path to directory> should include root '/' \n", argv[2]);
-        exit(1);
-    }
-    
-    int fd = open(argv[1], O_RDWR);
-    disk = mmap(NULL, DISK_BLOCK * EXT2_BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    
-    if(disk == MAP_FAILED) {
-        perror("mmap");
-        exit(1);
-    }
-//    block_bitmap = malloc(sizeof(char)*128);
-//    inode_bitmap = malloc(sizeof(char)*32);
-    construct_path_linkedlst(path);
-    walk_path(disk,p);
-//    free();
-//    free();
-    destroy_list();
-    return 0;
 }
