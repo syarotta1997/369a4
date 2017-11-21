@@ -178,6 +178,8 @@ int main(int argc, char **argv) {
 //    block_bitmap = malloc(sizeof(char)*128);
 //    inode_bitmap = malloc(sizeof(char)*32);
     construct_path_linkedlst(path);
+    if ( (strcmp(p->name,"/"))==0 && p->next==NULL)
+        printf("%s: Root directory cannot be created\n",p->name);
     walk_path();
 //    free();
 //    free();
