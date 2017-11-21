@@ -122,7 +122,7 @@ void construct_path_linkedlst(char* path){
         int index;
         if (ptr == NULL)
             index = strlen(path);
-        else:
+        else
             index = (int)(ptr - path);
         strncpy(new->name,path,index);
         new->next = NULL;
