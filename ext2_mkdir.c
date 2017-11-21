@@ -12,7 +12,7 @@ unsigned char *disk;
 char block_bitmap[DISK_BLOCK];
 char inode_bitmap[32];
 
-void construct_bitmap(size_t const size, void const * const ptr, char* type){
+void construct_bitmap(size_t const size, void const * const ptr, char type){
     unsigned char *b = (unsigned char*) ptr;
     unsigned char byte;
     int i, j,index;
