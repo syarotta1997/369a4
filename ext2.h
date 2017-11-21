@@ -22,7 +22,7 @@
 #define EXT2_BLOCK_SIZE 1024
 
 //Self defined function declarations*/
-void* walk_path(char* path);
+void* walk_path(unsigned char* disk, char* path);
 
 
 /*
