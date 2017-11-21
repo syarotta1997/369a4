@@ -165,17 +165,10 @@ int make_dir(unsigned short inum, char* name){
             dir = (struct ext2_dir_entry *)(disk + (1024* node->i_block[0]) );
             count = (int)dir->rec_len; 
             size = 1024;
-            while (count <= size){
-                char name[dir->name_len+1];
+            char name[dir->name_len+1];
                 memset(name, '\0', dir->name_len+1);
                 strncpy(name, dir->name, dir->name_len);
                 printf("new:%s\n",name);
-                if (count == 1024)
-                                   break;
-                               dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
-                                   count += (int)dir->rec_len;
-            }
-            break;
         }
     }
     //writing to 
