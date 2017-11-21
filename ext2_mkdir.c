@@ -40,7 +40,7 @@ void construct_bitmap(size_t const size, void const * const ptr, char type){
 int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
     
        int count = (int)dir->rec_len; 
-       int size = ino[dir->inode].i_size;
+       int size = ino[(int)dir->inode].i_size;
        printf("%d,%d\n",count,ino[dir->inode]);
        while ( count <= size ){
            printf("%s\n",dir->name);
@@ -66,6 +66,7 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
        //===finished traversing current layer of directory block and does not find target directory
         // if any component in path is not found, return error
        if (p->next != NULL){
+           printf("%s: not found\n",p->name);
            return ENOENT;
        }
        else{
