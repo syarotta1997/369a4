@@ -190,6 +190,10 @@ int main(int argc, char **argv) {
         printf("%s : Cannot create directory, %s already exists\n",argv[0],path);
         exit(1);
     }
+    if (result == ENOENT){
+        printf("%s : Invalid path %s\n",argv[0],path);
+        exit(1);
+    }
         
 //    free();
 //    free();
