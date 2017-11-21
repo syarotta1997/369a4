@@ -103,6 +103,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
         return p_inode;
     }
 }
+
 int allocate_block(int inode_num){
         for(int block = 0; block < 128; block++){
             if (! block_bitmap[block] & 1){
@@ -131,7 +132,6 @@ int make_dir(unsigned short inum, char* name){
     struct ext2_dir_entry * dir;
     struct ext2_inode* node;
     int count,size,inode_num,block_num;
-    //Allocating block sector
 
     // Allocating and writing to new inode section
     for (int i = 11 ; i < 32 ; i ++){
@@ -141,12 +141,12 @@ int make_dir(unsigned short inum, char* name){
             node = ino_table + i;
             
              printf("will allocate inode #%d\n",i+1);
-             set_bitmap((char *)disk+(1024 * gd->bg_inode_bitmap),block_num,'1');
+             set_bitmap((char *)disk+(1024 * gd->bg_inode_bitmap),i,'1');
             construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
                 for (int i = 0; i < 128; i++){
-                    printf("%u ",block_bitmap[i]);
+                    printf("%u ",inode_bitmap[i]);
                 }
-            set_bitmap((char *)disk+(1024 *  gd->bg_inode_bitmap),block_num,'0');
+            set_bitmap((char *)disk+(1024 *  gd->bg_inode_bitmap),i,'0');
             construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
             
             node->i_blocks = 2;
@@ -163,9 +163,22 @@ int make_dir(unsigned short inum, char* name){
             printf("done initializing inode\n");
             
             dir = (struct ext2_dir_entry *)(disk + (1024* node->i_block[0]) );
+            count = (int)dir->rec_len; 
+            size = 1024;
+            while (count <= size){
+                char name[dir->name_len+1];
+                memset(name, '\0', dir->name_len+1);
+                strncpy(name, dir->name, dir->name_len);
+                printf("new:%s\n",name);
+                if (count == ino[i].i_size)
+                                   break;
+                               dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
+                                   count += (int)dir->rec_len;
+            }
             break;
         }
     }
+    //writing to 
     //updating links in directory blocks
         for (int i = 14; i >= 0; i --){
             if ( ino_table[inum-1].i_block[i] != 0){
