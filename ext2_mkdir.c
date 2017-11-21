@@ -56,7 +56,15 @@ void* walk_path(unsigned char* disk, char* path){
         }
     }
 }
-
+/* A helper function that takes an absolute path as an argument and construct
+ * a linked list with each node containing the name of a component between 2 slashes
+ * (i.e. file name / directory name). In this way the trailing slashes will be handled and this list
+ * will aid in comparing names while traversing inodes in disk image.
+ * This function assumes all paths are absolute, which will start with root directory "/"
+ * 
+ * e.g.          construct_path_linkedlst("/usr/bin/csc369")
+ *                '/' -> ''usr   ->  'bin' -> '369'
+ */
 void construct_path_linkedlst(char* path){
     struct path_lnk* p = malloc(sizeof(struct path_lnk));
     memset(p->name,'\0',256);
@@ -80,7 +88,14 @@ void construct_path_linkedlst(char* path){
     for (struct path_lnk* i = p; i != NULL; i = i->next){
         printf("%s\n",i->name);
     }
-    
+}
+void destroy_list(){
+    struct path_lnk* cur = p;
+    while (cur != NULL){
+        struct path_lnk* to_free = cur;
+        cur = cur->next;
+        free(to_free);
+    }
 }
 
 int main(int argc, char **argv) {
@@ -108,5 +123,6 @@ int main(int argc, char **argv) {
     walk_path(disk,path);
 //    free();
 //    free();
+    destroy_list();
     return 0;
 }

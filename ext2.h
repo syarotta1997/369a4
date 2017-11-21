@@ -21,9 +21,10 @@
 /* The ext2 block size used in the assignment. */
 #define EXT2_BLOCK_SIZE 1024
 
-//Self defined function declarations*/
+//Self defined helper functions and structs//
 void* walk_path(unsigned char* disk, char* path);
 void construct_path_linkedlst(char* path);
+void destroy_list()
 struct path_lnk{
     char name[256];
     struct path_lnk* next;
