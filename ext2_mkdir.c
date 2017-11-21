@@ -161,14 +161,11 @@ int make_dir(unsigned short inum, char* name){
             node->i_links_count = 2;
             node->i_mode = EXT2_S_IFDIR;
             printf("done initializing inode\n");
-            
+            //Allocate empty directory
             dir = (struct ext2_dir_entry *)(disk + (1024* node->i_block[0]) );
             count = (int)dir->rec_len; 
             size = 1024;
-            char name[dir->name_len+1];
-                memset(name, '\0', dir->name_len+1);
-                strncpy(name, dir->name, dir->name_len);
-                printf("new:%s\n",name);
+            printf("%d %d\n",count,size);
                 
                 break;
         }
