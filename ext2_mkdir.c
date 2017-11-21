@@ -59,13 +59,15 @@ void* walk_path(unsigned char* disk, char* path){
 
 void construct_path_linkedlst(char* path){
     struct path_lnk* p = malloc(sizeof(struct path_lnk));
-    p.name = "/";
+    memset(p->name,'\0',256);
+    p->name[0] = '/';
     p->next = NULL;
     path = path + 1;
     int count = strlen(path)-1;
     struct path_lnk* cur = p;
     while (count > 0){
         struct path_lnk* new = malloc(sizeof(struct path_lnk));
+        memset(new->name,'\0',256);
         char* ptr = strchr(path, '/');
         int index = (int)(ptr - path);
         strncpy(new->name,path,index);
@@ -99,7 +101,7 @@ int main(int argc, char **argv) {
     }
 //    block_bitmap = malloc(sizeof(char)*128);
 //    inode_bitmap = malloc(sizeof(char)*32);
-    construct_path_linkedlst(path);
+    construct_path_linkedlst((char*)path);
     walk_path(disk,path);
 //    free();
 //    free();
