@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Usage: %s <image file name> <absolute path to directory>\n", argv[0]);
         exit(1);
     }
-    const char * path = argv[2];
+    char * path = (char*)argv[2];
     if (path[0] != '/'){
         fprintf(stderr, "%s: <absolute path to directory> should include root '/' \n", argv[2]);
         exit(1);
@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
     }
 //    block_bitmap = malloc(sizeof(char)*128);
 //    inode_bitmap = malloc(sizeof(char)*32);
-    construct_path_linkedlst((char*)path);
+    construct_path_linkedlst(path);
     walk_path(disk,path);
 //    free();
 //    free();
