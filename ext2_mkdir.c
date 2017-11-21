@@ -167,7 +167,7 @@ int make_dir(unsigned short inum, char* name){
             dir->inode = inode_num;
             strcpy(dir->name,new_dir);
             dir->name_len = strlen(new_dir);
-            dir->rec_len = sizeof(struct ext2_dir_entry);
+            dir->rec_len = sizeof(struct ext2_dir_entry) + dir->name_len;
             count = (int)dir->rec_len; 
             size = 1024;
             printf("%s: %d %d\n",dir->name,count,size);
