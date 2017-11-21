@@ -37,7 +37,7 @@ void construct_bitmap(size_t const size, void const * const ptr, char type){
     }
 }
 
-int ftree_visit(struct ext2_dir_entry * dir ,struct path_lnk* p){
+int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
     
        int count = (int)dir->rec_len; 
        int size = ino[dir->inode].i_size;
@@ -51,7 +51,7 @@ int ftree_visit(struct ext2_dir_entry * dir ,struct path_lnk* p){
                    if (p->next == NULL){
                        return EEXIST;
                    }
-                   return ftree_visit(dir, ino[dir->inode],p->next);
+                   return ftree_visit(dir, p->next);
                }
                
                if (count == ino[i].i_size)
@@ -93,7 +93,7 @@ void* walk_path(unsigned char* disk, struct path_lnk* p){
     printf("\n");
     ino = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
     struct ext2_dir_entry * root = ino[1].i_blocks[0];
-    int result = ftree_visit(root, 1, p);
+    int result = ftree_visit(root, p);
     return result;
     
 }
