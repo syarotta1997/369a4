@@ -161,7 +161,8 @@ int make_dir(unsigned short inum, char* name){
             node->i_links_count = 2;
             node->i_mode = EXT2_S_IFDIR;
             printf("done initializing inode\n");
-            dir = (struct ext2_dir_entry *)node->i_block[0];
+            
+            dir = (struct ext2_dir_entry *)(disk + (1024* node->i_block[0]) );
             break;
         }
     }
