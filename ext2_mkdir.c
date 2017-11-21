@@ -54,7 +54,7 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
                    if (p->next == NULL){
                        return EEXIST;
                    }
-                   struct ext2_dir_entry * new = (struct ext2_dir_entry *)(disk + (1024* ino_table[dir->inode-1].i_block[0]) )
+                   struct ext2_dir_entry * new = (struct ext2_dir_entry *)(disk + (1024* ino_table[dir->inode-1].i_block[0]));
                    return ftree_visit(new, p->next);
                }   
                
