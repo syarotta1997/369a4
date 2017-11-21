@@ -23,7 +23,11 @@
 
 //Self defined function declarations*/
 void* walk_path(unsigned char* disk, char* path);
-
+void construct_path_linkedlst;
+typedef struct{
+    char name[256];
+    path_lnk* next;
+}path_lnk;
 
 /*
  * Structure of the super block
