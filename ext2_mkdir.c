@@ -40,7 +40,7 @@ void construct_bitmap(size_t const size, void const * const ptr, char type){
 int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
     
        int count = (int)dir->rec_len; 
-       int size = ino_table[dir->inode].i_size;
+       int size = ino_table[dir->inode - 1].i_size;
        printf("%d,%d\n",count,dir->inode);
        while ( count <= size ){
            printf("%s\n",dir->name);
