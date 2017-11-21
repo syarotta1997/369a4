@@ -41,7 +41,7 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
     
        int count = (int)dir->rec_len; 
        int size = ino_table[dir->inode - 1].i_size;
-       printf("%d,%d\n",count,size);
+       printf("%d,%d,%s\n",count,size,p->name);
        while ( count <= size ){
            if (count == size)
                    break;
