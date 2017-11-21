@@ -169,6 +169,8 @@ int make_dir(unsigned short inum, char* name){
                 memset(name, '\0', dir->name_len+1);
                 strncpy(name, dir->name, dir->name_len);
                 printf("new:%s\n",name);
+                
+                break;
         }
     }
     //writing to 
