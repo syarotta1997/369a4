@@ -61,6 +61,7 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
             for (int index = 0; index < 15; index++){
                 if (ino_table[cur->inode-1].i_block[index] != 0 ){
                     new = (struct ext2_dir_entry *)(disk + (1024* ino_table[cur->inode-1].i_block[index]));
+                    dir = new;
                     result = ftree_visit(new, p->next);
                 }
             }
@@ -83,7 +84,6 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
         printf("%s need to be maked\n", p->name);
         printf("at %s\n",dir->name);
     }
-      
 }
 
 
