@@ -79,9 +79,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     }
     //===finished traversing current layer of directory block and does not find target directory
     // if any component in path is not found, return error
-    if (result == ENOENT || result == EEXIST)
-        return result;
-    else if (p->next != NULL){
+    if (p->next != NULL){
         printf("%s: not found\n",p->name);
         return ENOENT;
     }
