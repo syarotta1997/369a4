@@ -11,7 +11,7 @@
 #define DISK_BLOCK 128
 
 unsigned char *disk;
-struct ext2_inode *ino;
+struct ext2_inode *root;
 unsigned char block_bitmap[128];
 unsigned char inode_bitmap[32];
 struct path_lnk* p;
@@ -40,8 +40,8 @@ void construct_bitmap(size_t const size, void const * const ptr, char type){
 int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
     
        int count = (int)dir->rec_len; 
-       int size = ino[(int)dir->inode].i_size;
-       printf("%d,%d\n",count,ino[dir->inode]);
+       int size = root[dir->inode].i_size;
+       printf("%d,%d\n",count,root[dir->inode]);
        while ( count <= size ){
            printf("%s\n",dir->name);
            if (dir->file_type == EXT2_FT_DIR){
