@@ -10,8 +10,8 @@
 #define DISK_BLOCK 128
 
 unsigned char *disk;
-char block_bitmap[129];
-char inode_bitmap[33];
+unsigned char block_bitmap[129];
+unsigned char inode_bitmap[33];
 
 void construct_bitmap(size_t const size, void const * const ptr, char type){
     unsigned char *b = (unsigned char*) ptr;
@@ -23,9 +23,9 @@ void construct_bitmap(size_t const size, void const * const ptr, char type){
             byte = (b[i] >> j) & 1;
             printf("%u",byte);
             if (type == 'b')
-                block_bitmap[index] = (char)byte;
+                block_bitmap[index] = byte;
             else if (type == 'i')
-                inode_bitmap[index] = (char)byte;
+                inode_bitmap[index] = byte;
             index++;
         }
     }
