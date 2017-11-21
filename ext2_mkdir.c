@@ -39,18 +39,19 @@ void construct_bitmap(size_t const size, void const * const ptr, char type){
 
 int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
     struct ext2_dir_entry * new;
+    struct ext2_dir_entry * cur = dir;
     int result;
-    int count = (int)dir->rec_len; 
-    int size = ino_table[dir->inode - 1].i_size;
+    int count = (int)cur->rec_len; 
+    int size = ino_table[cur->inode - 1].i_size;
       
     printf("%d,%d,%s\n",count,size,p->name);
     
     while ( count <= size ){
 
-        if (dir->file_type == EXT2_FT_DIR){
-            char name[dir->name_len+1];
-            memset(name, '\0', dir->name_len+1);
-            strncpy(name, dir->name, dir->name_len);
+        if (cur->file_type == EXT2_FT_DIR){
+            char name[cur->name_len+1];
+            memset(name, '\0', cur->name_len+1);
+            strncpy(name, cur->name, cur->name_len);
             printf("%s\n",name);
             if (strcmp(name,p->name) == 0){
             if (p->next == NULL){
@@ -58,8 +59,8 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
             }
             //iterate all 15 pointers in i_block array and recursively search for path
             for (int index = 0; index < 15; index++){
-                if (ino_table[dir->inode-1].i_block[index] != 0 ){
-                    new = (struct ext2_dir_entry *)(disk + (1024* ino_table[dir->inode-1].i_block[index]));
+                if (ino_table[cur->inode-1].i_block[index] != 0 ){
+                    new = (struct ext2_dir_entry *)(disk + (1024* ino_table[cur->inode-1].i_block[index]));
                     result = ftree_visit(new, p->next);
                 }
             }
@@ -69,8 +70,8 @@ int ftree_visit(struct ext2_dir_entry * dir, struct path_lnk* p){
         if (count == size)
             break;
 
-        dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
-        count += (int)dir->rec_len;
+        cur = (struct ext2_dir_entry *)((char *)cur + (cur->rec_len));
+        count += (int)cur->rec_len;
     }
     //===finished traversing current layer of directory block and does not find target directory
     // if any component in path is not found, return error
