@@ -103,19 +103,18 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     }
 }
 
-int allocate_block(int inode_num){
+int allocate_block(int inode_idx){
         for(int block = 0; block < 128; block++){
             if (! block_bitmap[block] & 1){
-                printf("will allocate block #%d\n",block);
+                printf("will allocate block #%d\n",block+1);
                 set_bitmap((char *)disk+(1024 * gd->bg_block_bitmap),block,'1');
                 construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_block_bitmap), 'b');
                 for (int i = 0; i < 13 ; i ++){
-                    if ( (ino_table+inode_num)->i_block[i] == 0){
-                        (ino_table+inode_num)->i_block[i] = block;
-                        return block;
+                    if ( (ino_table+inode_idx)->i_block[i] == 0){
+                        (ino_table+inode_idx)->i_block[i] = block+1;
+                        return block+1;
                     } 
                 }
-
             }
         }
         printf("oops,all blocks seems to be occupied\n");
@@ -130,10 +129,10 @@ int make_dir(unsigned short inum, char* name){
     // Allocating and writing to new inode section and new directory entry
     for (int i = 11 ; i < 32 ; i ++){
         if (! inode_bitmap[i] & 1){
-            inode_num = i;
-            block_num = allocate_block(inode_num);
+            inode_num = i + 1;
+            block_num = allocate_block(inode_num - 1);
             node = ino_table + i;
-            printf("will allocate inode #%d\n",i+1);
+            printf("will allocate inode #%d\n",ino_num);
             set_bitmap((char *)disk+(1024 * gd->bg_inode_bitmap),i,'1');
             construct_bitmap(32, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
             node->i_blocks = 2;
@@ -151,7 +150,7 @@ int make_dir(unsigned short inum, char* name){
             //Allocate empty directory and writes to it with current dir and parent dir entries
             dir = (struct ext2_dir_entry *)(disk + (1024* node->i_block[0]) );
             dir->file_type = EXT2_FT_DIR;
-            dir->inode = inode_num + 1;
+            dir->inode = inode_num;
             strcpy(dir->name,".");
             dir->name_len = 1;
             dir->rec_len = sizeof(struct ext2_dir_entry) + dir->name_len;
@@ -181,7 +180,7 @@ int make_dir(unsigned short inum, char* name){
         if (ino_table[inum-1].i_block[i-1] != 0){
             int dir_block_num = ino_table[inum-1].i_block[i-1];
             printf("locate parent dir block num at %d\n",dir_block_num);
-            dir = (struct ext2_dir_entry *)(disk + (1024* dir_block_num) );
+            dir = (struct ext2_dir_entry *)(disk + (1024* (dir_block_num-1)) );
             count = dir->rec_len;
             printf("begin %d with rec_len %d \n",dir->inode,count);
             
@@ -209,7 +208,7 @@ int make_dir(unsigned short inum, char* name){
                         dir->rec_len = size;
                         dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
                         dir->file_type = EXT2_FT_DIR;
-                        dir->inode = inode_num + 1;
+                        dir->inode = inode_num;
                         strcpy(dir->name,name);
                         dir->name_len = strlen(name);
                         dir->rec_len = count;       
@@ -316,7 +315,7 @@ int main(int argc, char **argv) {
     int result;
     for (int i_idx = 0; i_idx < 15; i_idx++){
         if ( ino_table[1].i_block[i_idx] != 0){
-            struct ext2_dir_entry * root = (struct ext2_dir_entry *)(disk + (1024* ino_table[1].i_block[i_idx]) );
+            struct ext2_dir_entry * root = (struct ext2_dir_entry *)(disk + (1024* (ino_table[1].i_block[i_idx]+1)) );
             result = ftree_visit(root, 2 ,p->next);
         }
     }
@@ -352,8 +351,8 @@ int main(int argc, char **argv) {
         }
     }
         printf ("\nDirectory Blocks:\n");
-    for (int i = 0; i < sb->s_inodes_count ; i++){
-        if ( (i == 1 || i > 10) && ino_table[i].i_size > 0 && S_ISDIR(ino_table[i].i_mode)){
+    for (int i = 0; i < 32 ; i++){
+        if ( (i == 1 || i > 10) && (inode_bitmap[i] & 1) && S_ISDIR(ino_table[i].i_mode)){
                 for (int j = 0 ; j < 12 ; j++){
                    if (ino_table[i].i_block[j] != 0){
                        printf("   DIR BLOCK NUM: %d (for inode %d)\n", ino_table[i].i_block[j], i+1);
