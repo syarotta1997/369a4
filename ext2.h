@@ -21,13 +21,6 @@
 /* The ext2 block size used in the assignment. */
 #define EXT2_BLOCK_SIZE 1024
 
-//Self defined helper functions and structs
-struct path_lnk{
-    char name[256];
-    struct path_lnk* next;
-};
-void construct_path_linkedlst(char* path);
-
 
 /*
  * Structure of the super block

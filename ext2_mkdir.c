@@ -8,16 +8,17 @@
 #include <string.h>
 #include <errno.h>
 #include "ext2.h"
+#include "helper.h"
 #define DISK_BLOCK 128
 
-unsigned char *disk;
-struct ext2_super_block *sb;
-struct ext2_group_desc *gd;
-struct ext2_inode *ino_table;
-unsigned char block_bitmap[128];
-unsigned char inode_bitmap[32];
-struct path_lnk* p;
-char* new_dir;
+extern unsigned char *disk;
+extern struct ext2_super_block *sb;
+extern struct ext2_group_desc *gd;
+extern struct ext2_inode *ino_table;
+extern unsigned char block_bitmap[128];
+extern unsigned char inode_bitmap[32];
+extern struct path_lnk* p;
+extern char* new_dir;
 
 /*
  * A helper function that constructs the local bitmaps given the pointer to disk
@@ -152,7 +153,7 @@ int make_dir(unsigned short inum, char* name){
             dir = (struct ext2_dir_entry *)(disk + (1024* (node->i_block[0])));
             dir->file_type = EXT2_FT_DIR;
             dir->inode = inode_num;
-            strcpy(dir->name,".");
+            strcnpy(dir->name,".",1);
             dir->name_len = 1;
             dir->rec_len = sizeof(struct ext2_dir_entry) + dir->name_len;
             if (dir->rec_len % 4 != 0){
@@ -162,7 +163,7 @@ int make_dir(unsigned short inum, char* name){
             dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
             dir->file_type = EXT2_FT_DIR;
             dir->inode = inum;
-            strcpy(dir->name,"..");
+            strncpy(dir->name,"..",2);
             dir->name_len = 2;
             dir->rec_len = 1024 - count;       
             if (dir->rec_len % 4 != 0){
@@ -206,8 +207,9 @@ int make_dir(unsigned short inum, char* name){
                         dir =(struct ext2_dir_entry *)(disk + (1024* (block_num)) );
                         dir->file_type = EXT2_FT_DIR;
                         dir->inode = inode_num;
-                        strcpy(dir->name,name);
                         dir->name_len = strlen(name);
+                        strcnpy(dir->name,name,dir->name_len);
+                        
                         dir->rec_len = 1024;       
                     }
                     //there is space in this dir_block, add the new directory to it
@@ -218,8 +220,9 @@ int make_dir(unsigned short inum, char* name){
                         dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
                         dir->file_type = EXT2_FT_DIR;
                         dir->inode = inode_num;
-                        strcpy(dir->name,name);
                         dir->name_len = strlen(name);
+                        strncpy(dir->name,name,dir->name_len);
+                        
                         dir->rec_len = count;       
                         if (dir->rec_len % 4 != 0){
                             dir->rec_len =4*(dir->rec_len / 4) + 4;
@@ -237,52 +240,6 @@ int make_dir(unsigned short inum, char* name){
         }
     }
     return 0;
-}
-
-/* 
- * A helper function that takes an absolute path as an argument and construct
- * a linked list with each node containing the name of a component between 2 slashes
- * (i.e. file name / directory name). In this way the trailing slashes will be handled and this list
- * will aid in comparing names while traversing inodes in disk image.
- * This function assumes all paths are absolute, which will start with root directory "/"
- * 
- * e.g.          construct_path_linkedlst("/usr/bin/csc369")
- *                '/' -> ''usr   ->  'bin' -> '369'
- */
-void construct_path_linkedlst(char* path){
-    p = malloc(sizeof(struct path_lnk));
-    memset(p->name,'\0',256);
-    p->name[0] = '/';
-    p->next = NULL;
-    path = path + 1;
-    int count = strlen(path)-1;
-    struct path_lnk* cur = p;
-    while (count > 0){
-        struct path_lnk* new = malloc(sizeof(struct path_lnk));
-        memset(new->name,'\0',256);
-        char* ptr = strchr(path, '/');
-        int index;
-        if (ptr == NULL)
-            index = strlen(path);
-        else
-            index = (int)(ptr - path);
-        strncpy(new->name,path,index);
-        new->next = NULL;
-        cur->next = new;
-        if ( (count - strlen(new->name) + 1) <= 0)
-            new_dir = new->name;
-        cur = cur->next;
-        path = path + index + 1;
-        count -= strlen(new->name) + 1;
-    }
-    for (struct path_lnk* i = p; i != NULL; i = i->next){
-        if (strcmp(p->name,"/")!=0)
-            printf("%s/",i->name);
-        else
-            printf("%s",i->name);
-    }
-    puts("");
-    printf("new to be make:%s\n",new_dir);
 }
 
 int main(int argc, char **argv) {

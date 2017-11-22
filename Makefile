@@ -1,4 +1,9 @@
 all : ext2_mkdir
 
-ext2_mkdir : ext2_mkdir.c ext2.h
-	gcc -Wall -g -o ext2_mkdir ext2_mkdir.c
+ext2_mkdir : ext2_mkdir.o helper.o 
+	gcc -Wall -g -o ext2_mkdir ext2_mkdir.o helper.o
+%.o: %.c
+	gcc -c -Wall -g -o $@ $<
+
+clean:
+	rm -f *.o ext2_mkdir
