@@ -73,8 +73,9 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                 }
                 //iterate all 15 pointers in i_block array and recursively search for path
                 for (int index = 0; index < 15; index++){
-                    if (ino_table[cur->inode-1].i_block[index] != 0 ){
-                        new = (struct ext2_dir_entry *)(disk + (1024* ino_table[cur->inode-1].i_block[index]));
+                    int block_num = ino_table[cur->inode-1].i_block[index];
+                    if ( block_num != 0 ){
+                        new = (struct ext2_dir_entry *)disk + (1024* (block_num - 1));
                         return ftree_visit(new, cur->inode,p->next);
                     }
                 }
