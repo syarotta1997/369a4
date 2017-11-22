@@ -113,8 +113,8 @@ int allocate_block(int inode_num){
                     for (int i = 0; i < 128; i++){
                         printf("%u ",block_bitmap[i]);
                     }
-//                set_bitmap((char *)disk+(1024 * gd->bg_block_bitmap),block,'0');
-//                construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_block_bitmap), 'b');
+                set_bitmap((char *)disk+(1024 * gd->bg_block_bitmap),block,'0');
+                construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_block_bitmap), 'b');
                 for (int i = 0; i < 13 ; i ++){
                     if ( (ino_table+inode_num)->i_block[i] == 0){
                         (ino_table+inode_num)->i_block[i] = block;
@@ -146,8 +146,8 @@ int make_dir(unsigned short inum, char* name){
                 for (int i = 0; i < 32;i++){
                     printf("%u ",inode_bitmap[i]);
                 }
-//            set_bitmap((char *)disk+(1024 *  gd->bg_inode_bitmap),i,'0');
-//            construct_bitmap(32, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');      
+            set_bitmap((char *)disk+(1024 *  gd->bg_inode_bitmap),i,'0');
+            construct_bitmap(32, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');      
             node->i_blocks = 2;
             node->i_file_acl = 0;
             node->i_dir_acl = 0;
@@ -179,6 +179,7 @@ int make_dir(unsigned short inum, char* name){
             if (dir->rec_len % 4 != 0){
                 dir->rec_len =4*(dir->rec_len / 4) + 4;
             }
+            printf("DONE init new dir entry\n");
             break;
         }
     }
