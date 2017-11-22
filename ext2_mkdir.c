@@ -204,7 +204,8 @@ int make_dir(unsigned short inum, char* name){
                         if (size % 4 != 0){
                             size =4*(size / 4) + 4;
                         }
-                    if (count + size + new_size > 1024){
+                    if (count - size + new_size > 1024){
+                        printf("allocate needed\n");
                         //allocate new block
                     }
                     //there is space in this dir_block, add the new directory to it
@@ -223,7 +224,7 @@ int make_dir(unsigned short inum, char* name){
                         
                     }
                     //done updating, no point in looping
-                    printf("done updating parent dir\n");
+                    printf("done updating parent dir, added inode %d\n",dir->inode);
                     break;
                 }
                 dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
