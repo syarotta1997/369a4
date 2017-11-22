@@ -196,7 +196,8 @@ int make_dir(unsigned short inum, char* name){
                             size =4*(size / 4) + 4;
                         }
                     printf("reached end block inode %d,size %d,new size %d\n",dir->inode,size,new_size);
-                    if (count - size + new_size > 1024){
+                    count = dir->rec_len - size;
+                    if ( count - new_size < 0){
                         printf("allocate needed\n");
                         //allocate new block
                     }
@@ -204,7 +205,7 @@ int make_dir(unsigned short inum, char* name){
                     else{
                         //changing current pointer from end of file to the new dir
                         printf("size%d\n",size);
-                        count = dir->rec_len - size;
+                        
                         dir->rec_len = size;
                         dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
                         dir->file_type = EXT2_FT_DIR;
