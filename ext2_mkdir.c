@@ -218,14 +218,14 @@ int make_dir(unsigned short inum, char* name){
                         dir->inode = inode_num + 1;
                         strcpy(dir->name,name);
                         dir->name_len = strlen(name);
-                        dir->rec_len = count + size;       
+                        dir->rec_len = count - size;       
                         if (dir->rec_len % 4 != 0){
                             dir->rec_len =4*(dir->rec_len / 4) + 4;
                         }
                         
                     }
                     //done updating, no point in looping
-                    printf("done updating parent dir, added inode %s\n",dir->name);
+                    printf("done updating parent dir, added inode %s,%d\n",dir->name,dir->rec_len);
                     break;
                 }
                 dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
