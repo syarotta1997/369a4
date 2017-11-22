@@ -198,6 +198,7 @@ int make_dir(unsigned short inum, char* name){
             
             while (count < 1024){
                 if (count + (int)dir->rec_len == 1024){
+                    printf("reached end block at %d",dir->inode);
                     size = sizeof(struct ext2_dir_entry)+dir->name_len;
                         if (size % 4 != 0){
                             size =4*(size / 4) + 4;
@@ -225,7 +226,7 @@ int make_dir(unsigned short inum, char* name){
                     break;
                 }
                 dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
-                    count += (int)dir->rec_len;
+                count += (int)dir->rec_len;
                     
             }
         }
