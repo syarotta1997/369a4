@@ -162,19 +162,20 @@ int make_dir(unsigned short inum, char* name){
             //Allocate empty directory and writes to it with current dir and parent dir entries
             dir = (struct ext2_dir_entry *)(disk + (1024* node->i_block[0]) );
             dir->file_type = EXT2_FT_DIR;
-            dir->inode = inode_num;
+            dir->inode = inode_num + 1;
             strcpy(dir->name,".");
             dir->name_len = 1;
             dir->rec_len = sizeof(struct ext2_dir_entry) + dir->name_len;
             if (dir->rec_len % 4 != 0){
                 dir->rec_len = 4*(dir->rec_len / 4) + 4;
             }
+            count = dir->rec_len;
             dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
             dir->file_type = EXT2_FT_DIR;
             dir->inode = inum;
             strcpy(dir->name,"..");
             dir->name_len = 2;
-            dir->rec_len = 1024 - (sizeof(struct ext2_dir_entry) + dir->name_len);       
+            dir->rec_len = 1024 - count;       
             if (dir->rec_len % 4 != 0){
                 dir->rec_len =4*(dir->rec_len / 4) + 4;
             }
