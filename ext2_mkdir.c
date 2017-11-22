@@ -199,7 +199,7 @@ int make_dir(unsigned short inum, char* name){
             while (count <= 1024){
                 //reached at end pointer of this current block
                 if (count == 1024){
-                    printf("reached end block at %d",dir->inode);
+                    printf("reached end block at %d\n",dir->inode);
                     size = sizeof(struct ext2_dir_entry)+dir->name_len;
                         if (size % 4 != 0){
                             size =4*(size / 4) + 4;
@@ -211,10 +211,11 @@ int make_dir(unsigned short inum, char* name){
                     //there is space in this dir_block, add the new directory to it
                     else{
                         //changing current pointer from end of file to the new dir
+                        printf("size%d\n",size);
                         dir->rec_len = size;
                         dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
                         dir->file_type = EXT2_FT_DIR;
-                        dir->inode = inode_num;
+                        dir->inode = inode_num + 1;
                         strcpy(dir->name,name);
                         dir->name_len = strlen(name);
                         dir->rec_len = count + size;       
@@ -224,7 +225,7 @@ int make_dir(unsigned short inum, char* name){
                         
                     }
                     //done updating, no point in looping
-                    printf("done updating parent dir, added inode %d\n",dir->inode);
+                    printf("done updating parent dir, added inode %s\n",dir->name);
                     break;
                 }
                 dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
