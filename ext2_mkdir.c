@@ -334,6 +334,7 @@ int main(int argc, char **argv) {
     else{
         make_dir(result, new_dir);
     }
+    printf("=================================================\n");
         for (int i = 0; i < 32 ; i++){
         if ( (i == 1 || i > 10) && inode_bitmap[i] & 1){
             char type;
