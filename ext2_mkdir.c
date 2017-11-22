@@ -315,8 +315,9 @@ int main(int argc, char **argv) {
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
     int result;
     for (int i_idx = 0; i_idx < 15; i_idx++){
-        if ( ino_table[1].i_block[i_idx] != 0){
-            struct ext2_dir_entry * root = (struct ext2_dir_entry *)disk + (1024* ( ino_table[1].i_block[i_idx]-1)) ;
+        int block_num = ino_table[1].i_block[i_idx];
+        if (  block_num != 0){
+            struct ext2_dir_entry * root = (struct ext2_dir_entry *)(disk + (1024* (block_num - 1))) ;
             result = ftree_visit(root, 2 ,p->next);
         }
     }
