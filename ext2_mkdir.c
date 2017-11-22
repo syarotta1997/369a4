@@ -227,7 +227,7 @@ int make_dir(unsigned short inum, char* name){
                 }
                 dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
                 count += (int)dir->rec_len;
-                    
+                printf("end ,count now is %d\n",count);
             }
         }
     }
