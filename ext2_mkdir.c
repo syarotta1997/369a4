@@ -192,6 +192,7 @@ int make_dir(unsigned short inum, char* name){
             int dir_block_num = ino_table[inum-1].i_block[i-1];
             printf("locate parent dir block num at %d\n",dir_block_num);
             dir = (struct ext2_dir_entry *)(disk + (1024* dir_block_num) );
+            printf("begin %d\n",dir->inode);
             count = dir->rec_len;
             
             while (count < 1024){
