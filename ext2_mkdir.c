@@ -55,7 +55,6 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     struct ext2_dir_entry * new;
     struct ext2_dir_entry * cur = dir;
     
-    int result;
     int count = (int)cur->rec_len; 
     int size = ino_table[cur->inode - 1].i_size;
       
@@ -219,6 +218,7 @@ int make_dir(unsigned short inum, char* name){
                         
                     }
                     //done updating, no point in looping
+                    printf("done updating parent dir\n");
                     break;
                 }
                 dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
@@ -338,6 +338,47 @@ int main(int argc, char **argv) {
     else{
         make_dir(result, new_dir);
     }
+        printf ("\nDirectory Blocks:\n");
+    for (int i = 0; i < sb->s_inodes_count ; i++){
+        if ( (i == 1 || i > 10) && ino_table[i].i_size > 0 && S_ISDIR(ino_table[i].i_mode)){
+                for (int j = 0 ; j < 12 ; j++){
+                   if (ino_table[i].i_block[j] != 0){
+                       printf("   DIR BLOCK NUM: %d (for inode %d)\n", ino[i].i_block[j], i+1);
+                       struct ext2_dir_entry * dir = (struct ext2_dir_entry *)(disk + (1024* ino_table[i].i_block[j]) );
+                       int count = (int)dir->rec_len; 
+                       while ( count <= ino_table[i].i_size ){
+                           char type;
+                           char names[dir->name_len+1];
+                           memset(names, '\0', dir->name_len+1);
+                           strncpy(names, dir->name, dir->name_len);
+                           if (dir->file_type == EXT2_FT_REG_FILE)
+                               type = 'f';
+                           else if (dir->file_type == EXT2_FT_DIR)
+                               type = 'd';
+                           else if (dir->file_type == EXT2_FT_SYMLINK)
+                               type = 'l';
+                               printf("Inode: %d rec_len: %d name_len: %d type= %c name= %s \n", dir->inode,dir->rec_len,dir->name_len,type,names);                         
+                               if (count == ino[i].i_size)
+                                   break;
+                               dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
+                                   count += (int)dir->rec_len;
+                       }
+                   }
+                }
+        }
+    
+}
+    
+    
+    
+    
+    
+    
+    
+        puts("");
+    
+    
+    
     //Free all allocated memories
     struct path_lnk* cur = p;
     while (cur != NULL){
