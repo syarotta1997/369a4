@@ -191,10 +191,11 @@ int make_dir(unsigned short inum, char* name){
                 if (count == 1024){
                     
                     size = sizeof(struct ext2_dir_entry)+dir->name_len;
-                    printf("reached end block inode %d,size %d\n",dir->inode,size);
+                    
                         if (size % 4 != 0){
                             size =4*(size / 4) + 4;
                         }
+                    printf("reached end block inode %d,size %d,new size %d\n",dir->inode,size,new_size);
                     if (count - size + new_size > 1024){
                         printf("allocate needed\n");
                         //allocate new block
