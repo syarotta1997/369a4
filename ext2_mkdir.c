@@ -131,7 +131,7 @@ int make_dir(unsigned short inum, char* name){
     for (int i = 11 ; i < 32 ; i ++){
         if (! inode_bitmap[i] & 1){
             inode_num = i + 1;
-            block_num = allocate_block(inode_num - 1);
+            allocate_block(inode_num - 1);
             node = ino_table + i;
             printf("will allocate inode #%d\n",inode_num);
             set_bitmap((char *)disk+(1024 * gd->bg_inode_bitmap),i,'1');
@@ -173,6 +173,7 @@ int make_dir(unsigned short inum, char* name){
         }
     }
     // Updating parent directory entry
+    ino_table[inum-1].i_links_count++;
     int new_size = sizeof(struct ext2_dir_entry) + strlen(name);
             if (new_size % 4 != 0){
                 new_size =4*(new_size) + 4;
@@ -197,15 +198,22 @@ int make_dir(unsigned short inum, char* name){
                         }
                     printf("reached end block inode %d,size %d,new size %d\n",dir->inode,size,new_size);
                     count = dir->rec_len - size;
+                    //no space, need to allocate new block
                     if ( count - new_size < 0){
                         printf("allocate needed\n");
                         //allocate new block
+                        block_num = allocate_block(inum - 1);
+                        dir =(struct ext2_dir_entry *)(disk + (1024* (block_num)) );
+                        dir->file_type = EXT2_FT_DIR;
+                        dir->inode = inode_num;
+                        strcpy(dir->name,name);
+                        dir->name_len = strlen(name);
+                        dir->rec_len = 1024;       
                     }
                     //there is space in this dir_block, add the new directory to it
                     else{
                         //changing current pointer from end of file to the new dir
                         printf("size%d\n",size);
-                        
                         dir->rec_len = size;
                         dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
                         dir->file_type = EXT2_FT_DIR;
@@ -228,13 +236,6 @@ int make_dir(unsigned short inum, char* name){
             }
         }
     }
-    //updating links in directory blocks
-        for (int i = 14; i >= 0; i --){
-            if ( ino_table[inum-1].i_block[i] != 0){
-                
-//                dir->file_type = EXT2_FT_DIR;
-            }
-        }
     return 0;
 }
 
