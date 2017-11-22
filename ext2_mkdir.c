@@ -212,13 +212,14 @@ int make_dir(unsigned short inum, char* name){
                     else{
                         //changing current pointer from end of file to the new dir
                         printf("size%d\n",size);
+                        count = dir->rec_len - size;
                         dir->rec_len = size;
                         dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
                         dir->file_type = EXT2_FT_DIR;
                         dir->inode = inode_num + 1;
                         strcpy(dir->name,name);
                         dir->name_len = strlen(name);
-                        dir->rec_len = count - size;       
+                        dir->rec_len = count;       
                         if (dir->rec_len % 4 != 0){
                             dir->rec_len =4*(dir->rec_len / 4) + 4;
                         }
