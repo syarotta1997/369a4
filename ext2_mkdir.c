@@ -310,13 +310,6 @@ int main(int argc, char **argv) {
     gd = (struct ext2_group_desc *)(disk + (1024*2) );
     construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_block_bitmap), 'b');
     construct_bitmap(sb->s_inodes_count, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
-    for (int i = 0; i < 128; i++){
-        printf("%u ",block_bitmap[i]);
-    }
-//    printf("\n");
-//    for (int i = 0; i < 32; i++){
-//        printf("%u ",inode_bitmap[i]);
-//    }
     printf("\n");
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
     int result;
@@ -343,7 +336,7 @@ int main(int argc, char **argv) {
         if ( (i == 1 || i > 10) && ino_table[i].i_size > 0 && S_ISDIR(ino_table[i].i_mode)){
                 for (int j = 0 ; j < 12 ; j++){
                    if (ino_table[i].i_block[j] != 0){
-                       printf("   DIR BLOCK NUM: %d (for inode %d)\n", ino[i].i_block[j], i+1);
+                       printf("   DIR BLOCK NUM: %d (for inode %d)\n", ino_table[i].i_block[j], i+1);
                        struct ext2_dir_entry * dir = (struct ext2_dir_entry *)(disk + (1024* ino_table[i].i_block[j]) );
                        int count = (int)dir->rec_len; 
                        while ( count <= ino_table[i].i_size ){
@@ -358,7 +351,7 @@ int main(int argc, char **argv) {
                            else if (dir->file_type == EXT2_FT_SYMLINK)
                                type = 'l';
                                printf("Inode: %d rec_len: %d name_len: %d type= %c name= %s \n", dir->inode,dir->rec_len,dir->name_len,type,names);                         
-                               if (count == ino[i].i_size)
+                               if (count == ino_table[i].i_size)
                                    break;
                                dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
                                    count += (int)dir->rec_len;
