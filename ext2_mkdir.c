@@ -109,11 +109,6 @@ int allocate_block(int inode_num){
                 printf("will allocate block #%d\n",block);
                 set_bitmap((char *)disk+(1024 * gd->bg_block_bitmap),block,'1');
                 construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_block_bitmap), 'b');
-                    for (int i = 0; i < 128; i++){
-                        printf("%u ",block_bitmap[i]);
-                    }
-//                set_bitmap((char *)disk+(1024 * gd->bg_block_bitmap),block,'0');
-//                construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_block_bitmap), 'b');
                 for (int i = 0; i < 13 ; i ++){
                     if ( (ino_table+inode_num)->i_block[i] == 0){
                         (ino_table+inode_num)->i_block[i] = block;
@@ -194,8 +189,9 @@ int make_dir(unsigned short inum, char* name){
             while (count <= 1024){
                 //reached at end pointer of this current block
                 if (count == 1024){
-                    printf("reached end block at %d\n",dir->inode);
+                    
                     size = sizeof(struct ext2_dir_entry)+dir->name_len;
+                    printf("reached end block inode %d,size %d\n",dir->inode,size);
                         if (size % 4 != 0){
                             size =4*(size / 4) + 4;
                         }
