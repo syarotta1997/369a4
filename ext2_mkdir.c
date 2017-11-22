@@ -132,7 +132,7 @@ int make_dir(unsigned short inum, char* name){
             inode_num = i + 1;
             block_num = allocate_block(inode_num - 1);
             node = ino_table + i;
-            printf("will allocate inode #%d\n",ino_num);
+            printf("will allocate inode #%d\n",inode_num);
             set_bitmap((char *)disk+(1024 * gd->bg_inode_bitmap),i,'1');
             construct_bitmap(32, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
             node->i_blocks = 2;
