@@ -317,6 +317,7 @@ int main(int argc, char **argv) {
     for (int i_idx = 0; i_idx < 15; i_idx++){
         int block_num = ino_table[1].i_block[i_idx];
         if (  block_num != 0){
+            printf("root block %d\n",block_num);
             struct ext2_dir_entry * root = (struct ext2_dir_entry *)(disk + (1024* (block_num - 1))) ;
             result = ftree_visit(root, 2 ,p->next);
         }
