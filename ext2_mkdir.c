@@ -75,7 +75,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                 for (int index = 0; index < 15; index++){
                     int block_num = ino_table[cur->inode-1].i_block[index];
                     if ( block_num != 0 ){
-                        new = (struct ext2_dir_entry *)disk + (1024* (block_num - 1));
+                        new = (struct ext2_dir_entry *)disk + (1024* (block_num));
                         return ftree_visit(new, cur->inode,p->next);
                     }
                 }
@@ -149,7 +149,7 @@ int make_dir(unsigned short inum, char* name){
             node->i_mode = EXT2_S_IFDIR;
             printf("done initializing inode\n");
             //Allocate empty directory and writes to it with current dir and parent dir entries
-            dir = (struct ext2_dir_entry *)(disk + (1024* (node->i_block[0] - 1)));
+            dir = (struct ext2_dir_entry *)(disk + (1024* (node->i_block[0])));
             dir->file_type = EXT2_FT_DIR;
             dir->inode = inode_num;
             strcpy(dir->name,".");
@@ -181,7 +181,7 @@ int make_dir(unsigned short inum, char* name){
         if (ino_table[inum-1].i_block[i-1] != 0){
             int dir_block_num = ino_table[inum-1].i_block[i-1];
             printf("locate parent dir block num at %d\n",dir_block_num);
-            dir = (struct ext2_dir_entry *)(disk + (1024* (dir_block_num-1)) );
+            dir = (struct ext2_dir_entry *)(disk + (1024* (dir_block_num)) );
             count = dir->rec_len;
             printf("begin %d with rec_len %d \n",dir->inode,count);
             
@@ -318,7 +318,7 @@ int main(int argc, char **argv) {
         int block_num = ino_table[1].i_block[i_idx];
         if (  block_num != 0){
             printf("root block %d\n",block_num);
-            struct ext2_dir_entry * root = (struct ext2_dir_entry *)(disk + (1024* (block_num - 1))) ;
+            struct ext2_dir_entry * root = (struct ext2_dir_entry *)(disk + (1024* (block_num))) ;
             result = ftree_visit(root, 2 ,p->next);
         }
     }
