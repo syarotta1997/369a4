@@ -149,7 +149,7 @@ int make_dir(unsigned short inum, char* name){
             node->i_mode = EXT2_S_IFDIR;
             printf("done initializing inode\n");
             //Allocate empty directory and writes to it with current dir and parent dir entries
-            dir = (struct ext2_dir_entry *)(disk + (1024* node->i_block[0]) );
+            dir = (struct ext2_dir_entry *)(disk + (1024* (node->i_block[0] - 1)));
             dir->file_type = EXT2_FT_DIR;
             dir->inode = inode_num;
             strcpy(dir->name,".");
@@ -307,7 +307,7 @@ int main(int argc, char **argv) {
         printf("%s : %s Root directory cannot be created\n",argv[0],p->name);
         exit(1);
     }
-    sb = (struct ext2_super_block *)(disk + EXT2_BLOCK_SIZE);
+    sb = (struct ext2_super_block *)(disk + 1024);
     gd = (struct ext2_group_desc *)(disk + (1024*2) );
     construct_bitmap(DISK_BLOCK, (char *)disk+(1024 * gd->bg_block_bitmap), 'b');
     construct_bitmap(sb->s_inodes_count, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
@@ -316,7 +316,7 @@ int main(int argc, char **argv) {
     int result;
     for (int i_idx = 0; i_idx < 15; i_idx++){
         if ( ino_table[1].i_block[i_idx] != 0){
-            struct ext2_dir_entry * root = (struct ext2_dir_entry *)(disk + (1024* (ino_table[1].i_block[i_idx]-1)) );
+            struct ext2_dir_entry * root = (struct ext2_dir_entry *)disk + (1024* ( ino_table[1].i_block[i_idx]-1)) ;
             result = ftree_visit(root, 2 ,p->next);
         }
     }
