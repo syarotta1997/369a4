@@ -191,7 +191,7 @@ int make_dir(unsigned short inum, char* name){
             dir = (struct ext2_dir_entry *)(disk + (1024* (node->i_block[0])));
             dir->file_type = EXT2_FT_DIR;
             dir->inode = inode_num;
-            strcnpy(dir->name,".",1);
+            strncpy(dir->name,".",1);
             dir->name_len = 1;
             dir->rec_len = sizeof(struct ext2_dir_entry) + dir->name_len;
             if (dir->rec_len % 4 != 0){

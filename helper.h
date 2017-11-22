@@ -14,7 +14,7 @@
 
 //Self defined helper functions and structs
 struct path_lnk{
-    char name[256];
+    char name[255];
     struct path_lnk* next;
 };
 // extern variables
