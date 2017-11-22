@@ -133,7 +133,7 @@ int make_dir(unsigned short inum, char* name){
     struct ext2_inode* node;
     int count,size,inode_num,block_num;
 
-    // Allocating and writing to new inode section
+    // Allocating and writing to new inode section and new directory entry
     for (int i = 11 ; i < 32 ; i ++){
         if (! inode_bitmap[i] & 1){
             inode_num = i;
@@ -160,21 +160,72 @@ int make_dir(unsigned short inum, char* name){
             node->i_links_count = 2;
             node->i_mode = EXT2_S_IFDIR;
             printf("done initializing inode\n");
-            //Allocate empty directory and writes to it
+            //Allocate empty directory and writes to it with current dir and parent dir entries
             dir = (struct ext2_dir_entry *)(disk + (1024* node->i_block[0]) );
             dir->file_type = EXT2_FT_DIR;
             dir->inode = inode_num;
-            strcpy(dir->name,new_dir);
-            dir->name_len = strlen(new_dir);
+            strcpy(dir->name,".");
+            dir->name_len = 1;
             dir->rec_len = sizeof(struct ext2_dir_entry) + dir->name_len;
-            count = (int)dir->rec_len; 
-            size = 1024;
-            printf("%s: %d %d\n",dir->name,count,size);
-                
-                break;
+            if (dir->rec_len % 4 != 0){
+                dir->rec_len = 4*(dir->rec_len / 4) + 4;
+            }
+            dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
+            dir->file_type = EXT2_FT_DIR;
+            dir->inode = inum;
+            strcpy(dir->name,"..");
+            dir->name_len = 2;
+            dir->rec_len = 1024 - (sizeof(struct ext2_dir_entry) + dir->name_len);       
+            if (dir->rec_len % 4 != 0){
+                dir->rec_len =4*(dir->rec_len / 4) + 4;
+            }
+            break;
         }
     }
-    //writing to 
+    // Updating parent directory entry
+    int new_size = sizeof(struct ext2_dir_entry) + strlen(name);
+            if (new_size % 4 != 0){
+                new_size =4*(new_size) + 4;
+            }
+    for (int i = 12 ; i > 0 ; i -- ){
+        if (ino_table[inum-1].i_block[i-1] != 0){
+            int dir_block_num = ino_table[inum-1].i_block[i-1];
+            dir = (struct ext2_dir_entry *)(disk + (1024* dir_block_num) );
+            count = dir->rec_len;
+            
+            while (count < 1024){
+                if (count + (int)dir->rec_len == 1024){
+                    size = sizeof(struct ext2_dir_entry)+dir->name_len;
+                        if (size % 4 != 0){
+                            size =4*(size / 4) + 4;
+                        }
+                    if (count + size + new_size > 1024){
+                        //allocate new block
+                    }
+                    //there is space in this dir_block, add the new directory to it
+                    else{
+                        //changing current pointer from end of file to the new dir
+                        dir->rec_len = size;
+                        dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
+                        dir->file_type = EXT2_FT_DIR;
+                        dir->inode = inode_num;
+                        strcpy(dir->name,name);
+                        dir->name_len = strlen(name);
+                        dir->rec_len = count + size;       
+                        if (dir->rec_len % 4 != 0){
+                            dir->rec_len =4*(dir->rec_len / 4) + 4;
+                        }
+                        
+                    }
+                    //done updating, no point in looping
+                    break;
+                }
+                dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
+                    count += (int)dir->rec_len;
+                    
+            }
+        }
+    }
     //updating links in directory blocks
         for (int i = 14; i >= 0; i --){
             if ( ino_table[inum-1].i_block[i] != 0){
