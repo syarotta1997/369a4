@@ -138,15 +138,9 @@ int make_dir(unsigned short inum, char* name){
             inode_num = i;
             block_num = allocate_block(inode_num);
             node = ino_table + i;
-            
-             printf("will allocate inode #%d\n",i+1);
-             set_bitmap((char *)disk+(1024 * gd->bg_inode_bitmap),i,'1');
+            printf("will allocate inode #%d\n",i+1);
+            set_bitmap((char *)disk+(1024 * gd->bg_inode_bitmap),i,'1');
             construct_bitmap(32, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
-                for (int i = 0; i < 32;i++){
-                    printf("%u ",inode_bitmap[i]);
-                }
-//            set_bitmap((char *)disk+(1024 *  gd->bg_inode_bitmap),i,'0');
-//            construct_bitmap(32, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');      
             node->i_blocks = 2;
             node->i_file_acl = 0;
             node->i_dir_acl = 0;
@@ -339,6 +333,24 @@ int main(int argc, char **argv) {
     //no error given, return is the parent directory i_node of dir to make
     else{
         make_dir(result, new_dir);
+    }
+        for (int i = 0; i < 32 ; i++){
+        if ( (i == 1 || i > 10) && inode_bitmap[i] & 1){
+            char type;
+            if (S_ISREG(ino_table[i].i_mode))
+                type = 'f';
+            else if (S_ISDIR(ino_table[i].i_mode))
+                type = 'd';
+            else if (S_ISLNK(ino_table[i].i_mode))
+                type = 'l';
+            printf("[%d] type: %c size: %d links: %d blocks: %d\n", i+1, type, ino_table[i].i_size,ino_table[i].i_links_count, ino_table[i].i_blocks);
+            printf("[%d] Blocks: ", i+1);
+            for (int j = 0 ; j < 12 ; j++){
+               if (ino_table[i].i_block[j] != 0)
+                   printf("%d ",ino_table[i].i_block[j]);
+            }
+            puts("");
+        }
     }
         printf ("\nDirectory Blocks:\n");
     for (int i = 0; i < sb->s_inodes_count ; i++){
