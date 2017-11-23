@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
     if (f_name == NULL)
-        f_name = "";
+        f_name = source_path;
     if (strrchr(target_path,'/') - target_path == strlen(target_path) - 1)
         strcat(target_path,f_name+1);
     else
