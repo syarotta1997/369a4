@@ -44,12 +44,13 @@ int main(int argc, char **argv) {
         fprintf(stderr,"%s: Source needs to be a regular file.\n",source_path);
         exit(1);
     }
-    if (f_name == NULL){
-        f_name = "/";
-        printf(f_name);
+
+    if (strrchr(target_path,'/') - target_path == strlen(target_path) - 1){
+        if (f_name == NULL)
+            strcat(target_path,source_path);
+        else
+            strcat(target_path,f_name+1);
     }
-    if (strrchr(target_path,'/') - target_path == strlen(target_path) - 1)
-        strcat(target_path,f_name+1);
     else
         strcat(target_path,f_name);
         
