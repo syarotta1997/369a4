@@ -1,4 +1,4 @@
-all : ext2_mkdir
+all : ext2_mkdir ext2_cp
 
 ext2_mkdir : ext2_mkdir.o helper.o 
 	gcc -Wall -g -o ext2_mkdir ext2_mkdir.o helper.o
