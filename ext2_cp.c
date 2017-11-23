@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
         perror("stat");
         exit(1);
     }
-    if (! sb.st_mode & S_IFREG){
+    if ( ~(sb.st_mode & S_IFREG)){
         fprintf(stderr,"%s: Source needs to be a regular file.\n",source_path);
         exit(1);
     }
@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
     }
     int source_size = (int) sb.st_size;
     
-    construct_path_linkedlst(path);
+    construct_path_linkedlst(target_path);
     
     sb = (struct ext2_super_block *)(disk + 1024);
     gd = (struct ext2_group_desc *)(disk + (1024*2));
@@ -67,11 +67,11 @@ int main(int argc, char **argv) {
         if (  block_num != 0){
             printf("root block %d\n",block_num);
             struct ext2_dir_entry * root = (struct ext2_dir_entry *)(disk + (1024* (block_num))) ;
-            result = ftree_visit(root, 2 ,p->next);
+            result = ftree_visit(root, 2 ,p->next, "cp");
         }
     }
     if (result == -EEXIST){
-        printf("%s : Cannot create directory, %s already exists\n",argv[0],path);
+        printf("%s :Already exists\n",argv[0],path);
         exit(1);
     }
     else if (result == -ENOENT){
@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
         }
     }
         printf ("\nDirectory Blocks:\n");
-    for (int i = 0; i < 32 ; i++){
+        for (int i = 0; i < 32 ; i++){
         if ( (i == 1 || i > 10) && (inode_bitmap[i] & 1) && S_ISDIR(ino_table[i].i_mode)){
                 for (int j = 0 ; j < 12 ; j++){
                    if (ino_table[i].i_block[j] != 0){
@@ -131,9 +131,9 @@ int main(int argc, char **argv) {
                 }
         }
     
-}
+    }
         puts("");
         destroy_list();
-    }
+    
     return 0;
 }
