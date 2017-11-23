@@ -43,6 +43,8 @@ void construct_path_linkedlst(char* path){
         struct path_lnk* new = malloc(sizeof(struct path_lnk));
         memset(new->name,'\0',256);
         char* ptr = strchr(path, '/');
+        if (ptr == NULL)
+            ptr = strlen(path);
         int index = (int)(ptr - path);
         strncpy(new->name,path,index);
         new->next = NULL;
