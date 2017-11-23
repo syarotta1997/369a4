@@ -136,12 +136,6 @@ int main(int argc, char **argv) {
     
     
     
-    //Free all allocated memories
-    struct path_lnk* cur = p;
-    while (cur != NULL){
-        struct path_lnk* to_free = cur;
-        cur = cur->next;
-        free(to_free);
-    }
+    destroy_list();
     return 0;
 }
