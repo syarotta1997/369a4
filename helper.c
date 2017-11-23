@@ -160,7 +160,6 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
 int allocate_block(int inode_idx){
         for(int block = 0; block < 128; block++){
             if (! block_bitmap[block] & 1){
-                
                 set_bitmap((char *)(disk+(1024 * gd->bg_block_bitmap)),block,'1');
                 construct_bitmap(1024, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
                 for (int i = 0; i < 13 ; i ++){

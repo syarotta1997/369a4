@@ -52,7 +52,9 @@ int main(int argc, char **argv) {
     printf("\n");
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
     int result;
-    
+    for (int i = 0;i<128;i++){
+        printf("%u ",block_bitmap[i]);
+    }
     for (int i_idx = 0; i_idx < 15; i_idx++){
         int block_num = ino_table[1].i_block[i_idx];
         if (  block_num != 0){
