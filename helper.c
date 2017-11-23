@@ -93,8 +93,8 @@ void construct_bitmap(size_t const size, void const * const ptr, char type){
     }
 }
 
-void set_bitmap(void const * const ptr, int index,char type){
-    unsigned char *b = (unsigned char*) ptr;
+void set_bitmap(unsigned char* ptr, int index,char type){
+    unsigned char *b = ptr;
     int i, j;
     i = index / 8;
     j = index % 8;
@@ -161,7 +161,7 @@ int allocate_block(int inode_idx){
         for(int block = 0; block < 128; block++){
             if (! block_bitmap[block] & 1){
                 set_bitmap((char *)(disk+(1024 * gd->bg_block_bitmap)),block,'1');
-                construct_bitmap(1024, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
+                construct_bitmap(128, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
                 for (int i = 0; i < 13 ; i ++){
                     if ( (ino_table+inode_idx)->i_block[i] == 0){
                         (ino_table+inode_idx)->i_block[i] = block+1;
