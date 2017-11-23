@@ -26,15 +26,16 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Usage: %s <image file name> <absolute path of source file> <absolute path in image disk>\n", argv[0]);
         exit(1);
     }
-    if (target_path[0] != '/'){
-        fprintf(stderr, "%s: <absolute path in image disk> should include root '/' \n", argv[2]);
-        exit(1);
-    }
+
     struct stat stats;
     char * source_path = (char*)argv[2];
     char * target_path = (char*)argv[3];
     char * f_name = strrchr(source_path,'/');
     //Path validity checks
+    if (target_path[0] != '/'){
+        fprintf(stderr, "%s: <absolute path in image disk> should include root '/' \n", argv[2]);
+        exit(1);
+    }
     if (stat(argv[2], &stats) == -1) {
         perror("stat");
         exit(1);
