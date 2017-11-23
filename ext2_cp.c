@@ -71,11 +71,11 @@ int main(int argc, char **argv) {
         }
     }
     if (result == -EEXIST){
-        printf("%s :Already exists\n",argv[0],path);
+        printf("%s :Already exists\n",argv[0],target_path);
         exit(1);
     }
     else if (result == -ENOENT){
-        printf("%s : Invalid path %s\n",argv[0],path);
+        printf("%s : Invalid path %s\n",argv[0],target_path);
         exit(1);
     }
     //no error given, return is the parent directory i_node of dir to make
