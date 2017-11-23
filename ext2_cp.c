@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
         strcat(target_path,f_name);
     printf("target:%s\n",target_path);
     //Path validity checks
-    if (stat(argv[1], &stats) == -1) {
+    if (stat(argv[2], &stats) == -1) {
         perror("stat");
         exit(1);
     }
