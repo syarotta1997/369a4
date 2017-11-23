@@ -18,7 +18,9 @@ unsigned char block_bitmap[128];
 unsigned char inode_bitmap[32];
 struct path_lnk* p;
 char* new_dir;
-
+/*
+ * Utility functions
+ */
 /* 
  * A helper function that takes an absolute path as an argument and construct
  * a linked list with each node containing the name of a component between 2 slashes
@@ -66,7 +68,7 @@ void construct_path_linkedlst(char* path){
     puts("");
 }
 
-void destroy_list(struct path_lnk* p){
+void destroy_list(){
     struct path_lnk* cur = p;
     while (cur != NULL){
         struct path_lnk* to_free = cur;
@@ -104,7 +106,7 @@ void set_bitmap(unsigned char* ptr, int index,char type){
         *(b+i) = *(b+i) & ~(1 << j);
 }
 
-int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path_lnk* p){
+int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path_lnk* p£¬char* type){
     struct ext2_dir_entry * new;
     struct ext2_dir_entry * cur = dir;
     
@@ -112,48 +114,61 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     int size = ino_table[cur->inode - 1].i_size;
       
     printf("%d,%d,%s\n",count,size,p->name);
+
     
     while ( count <= size ){
-
-        if (cur->file_type == EXT2_FT_DIR){
-            char name[cur->name_len+1];
-            memset(name, '\0', cur->name_len+1);
-            strncpy(name, cur->name, cur->name_len);
-            printf("%s,%d\n",name,count);
-            if (strcmp(name,p->name) == 0){
-                if (p->next == NULL){
+        char name[cur->name_len+1];
+        memset(name, '\0', cur->name_len+1);
+        strncpy(name, cur->name, cur->name_len);
+        printf("%s,%d\n",name,count);
+        //only cares if we can find a match in the file names
+        if (strcmp(name,p->name) == 0){
+            
+            // reached end of path with an existing file, for both mkdir and cp case return EEXIST
+            if (cur->file_type == EXT2_FT_REG_FILE ){
+                if ( strcmp(type,"mkdir")==0 || strcmp(type,"mkdir")==0){
+                    fprintf(stderr,"%s: Already existing as a regular file\n", name);
                     return -EEXIST;
                 }
+            }
+            
+            // recursively dive deeper for directories until we reach end of path
+            else if (cur->file_type == EXT2_FT_DIR){
+            
+            //the component file name in disk image matches given component in path
+            
+                if (p->next == NULL){
+                    if (strcmp(type,"mkdir") == 0)
+                        return -EEXIST;
+                    else if (strcmp(type,"cp") == 0)
+                        return cur->inode;
+                }
                 //iterate all 15 pointers in i_block array and recursively search for path
-                for (int index = 0; index < 15; index++){
+                for (int index = 0; index < 13; index++){
                     int block_num = ino_table[cur->inode-1].i_block[index];
                     if ( block_num != 0 ){
                         new = (struct ext2_dir_entry *)(disk + (1024* block_num));
                         return ftree_visit(new, cur->inode,p->next);
                     }
                 }
-                
-                
             }   
         }
-        printf("current count:%d total size:%d\n",count, size);
         if (count == size)
             break;
-
         cur = (struct ext2_dir_entry *)((char *)cur + (cur->rec_len));
         count += (int)cur->rec_len;
     }
-    //===finished traversing current layer of directory block and does not find target directory
-    // if any component in path is not found, return error
+    //===finished traversing current layer of directory block and does not find target===============
+    // if any component in path (excluding last file) is not found, return error
     if (p->next != NULL){
         printf("%s: not found\n",p->name);
         return -ENOENT;
     }
-    
-    else{//makes the directory
-        printf("%s need to be maked\n", p->name);
-        printf("%d \n",p_inode);
-        return p_inode;
+    //if p.next is null, meaning we reached end of path where no target dir / file is found
+    else{
+        // in mkdir / cp case, has reached end of path and ensured validity to mkdir, return parent's inode
+            printf("%s need to be maked under parent inode %d \n", p->name, p_inode);
+            return p_inode;
     }
 }
 
@@ -174,7 +189,9 @@ int allocate_block(int inode_idx){
         printf("oops,all blocks seems to be occupied\n");
         return EINVAL;
 }
-
+/*
+ * make_dir functions
+ */
 int make_dir(unsigned short inum, char* name){
     struct ext2_dir_entry * dir;
     struct ext2_inode* node;
@@ -293,3 +310,6 @@ int make_dir(unsigned short inum, char* name){
     }
     return 0;
 }
+/*
+ * cp functions
+ */

@@ -22,15 +22,24 @@ extern char* new_dir;
 
 int main(int argc, char **argv) {
     //argument validity checks
-    if(argc != 3) {
-        fprintf(stderr, "Usage: %s <image file name> <absolute path to directory>\n", argv[0]);
+    if(argc != 4) {
+        fprintf(stderr, "Usage: %s <image file name> <absolute path of source file> <absolute path in image disk>\n", argv[0]);
         exit(1);
     }
-    
-    char * path = (char*)argv[2];
-    
-    if (path[0] != '/'){
-        fprintf(stderr, "%s: <absolute path to directory> should include root '/' \n", argv[2]);
+    struct stat sb;
+    char * source_path = (char*)argv[2];
+    char * target_path = (char*)argv[3];
+    //Path validity checks
+    if (stat(argv[1], &sb) == -1) {
+        perror("stat");
+        exit(1);
+    }
+    if (! sb.st_mode & S_IFREG){
+        fprintf(stderr,"%s: Source needs to be a regular file.\n",source_path);
+        exit(1);
+    }
+    if (target_path[0] != '/'){
+        fprintf(stderr, "%s: <absolute path in image disk> should include root '/' \n", argv[2]);
         exit(1);
     }
     //mapping memory onto disk and construct reference data structures
@@ -40,27 +49,25 @@ int main(int argc, char **argv) {
         perror("mmap");
         exit(1);
     }
+    int source_size = (int) sb.st_size;
+    
     construct_path_linkedlst(path);
-    if ( (strcmp(p->name,"/"))==0 && p->next==NULL){
-        printf("%s : %s Root directory cannot be created\n",argv[0],p->name);
-        exit(1);
-    }
+    
     sb = (struct ext2_super_block *)(disk + 1024);
-    gd = (struct ext2_group_desc *)(disk + (1024*2) );
+    gd = (struct ext2_group_desc *)(disk + (1024*2));
     construct_bitmap(DISK_BLOCK, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
     construct_bitmap(sb->s_inodes_count, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
-    printf("\n");
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
+    printf("\n");
+    
     int result;
-    for (int i = 0;i<128;i++){
-        printf("%u ",block_bitmap[i]);
-    }
+
     for (int i_idx = 0; i_idx < 15; i_idx++){
         int block_num = ino_table[1].i_block[i_idx];
         if (  block_num != 0){
             printf("root block %d\n",block_num);
             struct ext2_dir_entry * root = (struct ext2_dir_entry *)(disk + (1024* (block_num))) ;
-            result = ftree_visit(root, 2 ,p->next,"mkdir");
+            result = ftree_visit(root, 2 ,p->next);
         }
     }
     if (result == -EEXIST){
@@ -125,23 +132,8 @@ int main(int argc, char **argv) {
         }
     
 }
-    
-    
-    
-    
-    
-    
-    
         puts("");
-    
-    
-    
-    //Free all allocated memories
-    struct path_lnk* cur = p;
-    while (cur != NULL){
-        struct path_lnk* to_free = cur;
-        cur = cur->next;
-        free(to_free);
+        destroy_list();
     }
     return 0;
 }
