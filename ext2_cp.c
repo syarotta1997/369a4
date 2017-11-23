@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     }
     struct stat stats;
     char * source_path = (char*)argv[2];
-    char * f_name = source_path + (strrchr(source_path,'/'));
+    char * f_name = strrchr(source_path,'/');
     char * target_path = (char*)argv[3];
     strcat(target_path,f_name);
     printf("target:%s\n",target_path);
