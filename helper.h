@@ -30,7 +30,7 @@ extern char* new_dir;
 void construct_path_linkedlst(char* path);
 void construct_bitmap(size_t const size, void const * const ptr, char type);
 void set_bitmap(unsigned char* ptr, int index,char type);
-int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path_lnk* p, char type);
+int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path_lnk* p, char* type);
 int allocate_block(int inode_idx);
 int make_dir(unsigned short inum, char* name);
 void destroy_list();
