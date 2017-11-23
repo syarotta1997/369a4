@@ -62,7 +62,7 @@ void construct_path_linkedlst(char* path){
     for (struct path_lnk* i = p; i != NULL; i = i->next){
         printf("%s",i->name);
     }
-    printf("\n new:%s\n",new_dir);
+    printf("\nnew:%s\n",new_dir);
     puts("");
 }
 
@@ -160,12 +160,13 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
 int allocate_block(int inode_idx){
         for(int block = 0; block < 128; block++){
             if (! block_bitmap[block] & 1){
-                printf("will allocate block #%d\n",block+1);
+                
                 set_bitmap((char *)disk+(1024 * gd->bg_block_bitmap),block,'1');
                 construct_bitmap(1024, (char *)disk+(1024 * gd->bg_block_bitmap), 'b');
                 for (int i = 0; i < 13 ; i ++){
                     if ( (ino_table+inode_idx)->i_block[i] == 0){
                         (ino_table+inode_idx)->i_block[i] = block+1;
+                        printf("will allocate block #%d\n",block+1);
                         return block+1;
                     } 
                 }
