@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
         perror("stat");
         exit(1);
     }
-    if ( ! S_IFREG(stats.st_mode)){
+    if ( ! S_ISREG(stats.st_mode)){
         fprintf(stderr,"%s: Source needs to be a regular file.\n",source_path);
         exit(1);
     }
