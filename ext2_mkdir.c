@@ -26,7 +26,9 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Usage: %s <image file name> <absolute path to directory>\n", argv[0]);
         exit(1);
     }
+    
     char * path = (char*)argv[2];
+    
     if (path[0] != '/'){
         fprintf(stderr, "%s: <absolute path to directory> should include root '/' \n", argv[2]);
         exit(1);
