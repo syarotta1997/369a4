@@ -39,15 +39,15 @@ int main(int argc, char **argv) {
         fprintf(stderr,"%s: Source needs to be a regular file.\n",source_path);
         exit(1);
     }
-    if (f_name != NULL){
+    if (f_name == NULL)
+        f_name = "";
+    if (strrchr(target_path,'/') - target_path == strlen(target_path) - 1)
+        strcat(target_path,f_name+1);
+    else
+        strcat(target_path,f_name);
         
-        if (strrchr(target_path,'/') - target_path == strlen(target_path) - 1)
-            strcat(target_path,f_name+1);
-        else
-            strcat(target_path,f_name);
-        
-    }
     printf("target:%s\n",target_path);
+
     if (target_path[0] != '/'){
         fprintf(stderr, "%s: <absolute path in image disk> should include root '/' \n", argv[2]);
         exit(1);
