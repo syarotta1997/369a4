@@ -26,22 +26,23 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Usage: %s <image file name> <absolute path of source file> <absolute path in image disk>\n", argv[0]);
         exit(1);
     }
-
-    
     char * source_path = (char*)argv[2];
     char * target_path = (char*)argv[3];
-    
     //Path validity checks
     if (target_path[0] != '/'){
         fprintf(stderr, "%s: <absolute path in image disk> should include root '/' \n", argv[2]);
         exit(1);
     }
-    
-    char * new_path = chk_source_path(source_path, target_path);
-
-
-
-    
+    struct stat stats;
+    if (stat( (const char *)source_path, &stats) == -1) {
+        perror("stat");
+        exit(ENOENT);
+    }
+    if ( ! S_ISREG(stats.st_mode)){
+        fprintf(stderr,"%s: Source needs to be a regular file.\n",source_path);
+        exit(ENOENT);
+    }
+    char * new_path = chk_source_path(source_path, target_path);   
     //mapping memory onto disk and construct reference data structures
     int fd = open(argv[1], O_RDWR);
     disk = mmap(NULL, DISK_BLOCK * EXT2_BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
@@ -80,7 +81,7 @@ int main(int argc, char **argv) {
     //no error given, return is the parent directory i_node of dir to make
     else{
         printf("now calling copy\n");
-        //make_dir(result, new_dir);
+        copy_file(&stats, result, source_path);
     }
     printf("=================================================================\n");
         for (int i = 0; i < 32 ; i++){

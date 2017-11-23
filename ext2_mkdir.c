@@ -24,26 +24,26 @@ int main(int argc, char **argv) {
     //argument validity checks
     if(argc != 3) {
         fprintf(stderr, "Usage: %s <image file name> <absolute path to directory>\n", argv[0]);
-        exit(1);
+        exit(ENOENT);
     }
     
     char * path = (char*)argv[2];
     
     if (path[0] != '/'){
         fprintf(stderr, "%s: <absolute path to directory> should include root '/' \n", argv[2]);
-        exit(1);
+        exit(ENOENT);
     }
     //mapping memory onto disk and construct reference data structures
     int fd = open(argv[1], O_RDWR);
     disk = mmap(NULL, DISK_BLOCK * EXT2_BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if(disk == MAP_FAILED) {
         perror("mmap");
-        exit(1);
+        exit(ENOENT);
     }
     construct_path_linkedlst(path);
     if ( (strcmp(p->name,"/"))==0 && p->next==NULL){
         printf("%s : %s Root directory cannot be created\n",argv[0],p->name);
-        exit(1);
+        exit(ENOENT);
     }
     sb = (struct ext2_super_block *)(disk + 1024);
     gd = (struct ext2_group_desc *)(disk + (1024*2) );

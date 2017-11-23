@@ -17,6 +17,11 @@ struct path_lnk{
     char name[255];
     struct path_lnk* next;
 };
+struct single_indirect_block{
+    //assuming block size 1024, each block point is 4 bytes (32 bit / 8)
+    // then there are 256 pointer space avilable
+    int blocks[256];
+};
 // extern variables
 extern unsigned char *disk;
 extern struct ext2_super_block *sb;
@@ -32,7 +37,10 @@ void construct_bitmap(size_t const size, void const * const ptr, char type);
 void set_bitmap(unsigned char* ptr, int index,char type);
 int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path_lnk* p, char* type);
 int allocate_block(int inode_idx);
-int make_dir(unsigned short inum, char* name);
 void destroy_list();
 char * chk_source_path(char* source_path, char* target_path);
-#endif // __SIM_H 
+void init_inode(unsigned short inode_index, unsigned short size,char type );
+int make_dir(unsigned short inum, char* name);
+int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path);
+void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name,  char* type);
+#endif // __HEALPER_H

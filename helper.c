@@ -18,6 +18,7 @@ unsigned char block_bitmap[128];
 unsigned char inode_bitmap[32];
 struct path_lnk* p;
 char* new_dir;
+
 /*
  * Utility functions
  */
@@ -35,14 +36,12 @@ void construct_path_linkedlst(char* path){
     struct path_lnk* new = NULL;
     struct path_lnk* cur = NULL;
     int count, index;
-    
-    printf("given: %s\n",path);
+   
     p = malloc(sizeof(struct path_lnk));
     memset(p->name,'\0',256);
     p->name[0] = '/';
     p->next = NULL;
     path = path + 1;
-    printf("given2: %s\n",path);
     count = strlen(path)-1;
     cur = p;
     while (count > 0){
@@ -67,7 +66,6 @@ void construct_path_linkedlst(char* path){
     for (struct path_lnk* i = p; i != NULL; i = i->next){
         printf("%s",i->name);
     }
-    printf("\nnew:%s\n",new_dir);
     puts("");
 }
 
@@ -112,15 +110,7 @@ void set_bitmap(unsigned char* ptr, int index,char type){
 char * chk_source_path(char* source_path, char* target_path){
     char * f_name = strrchr(source_path,'/');
     char * new = target_path;
-    struct stat stats;
-    if (stat( (const char *)source_path, &stats) == -1) {
-        perror("stat");
-        exit(1);
-    }
-    if ( ! S_ISREG(stats.st_mode)){
-        fprintf(stderr,"%s: Source needs to be a regular file.\n",source_path);
-        exit(1);
-    }
+
     if (strrchr(new,'/') - new == strlen(new) - 1){
         if (f_name == NULL)
             strcat(new,source_path);
@@ -211,47 +201,130 @@ int allocate_block(int inode_idx){
             if (! block_bitmap[block] & 1){
                 set_bitmap(disk+(1024 * gd->bg_block_bitmap),block,'1');
                 construct_bitmap(128, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
-                for (int i = 0; i < 13 ; i ++){
-                    if ( (ino_table+inode_idx)->i_block[i] == 0){
-                        (ino_table+inode_idx)->i_block[i] = block+1;
-                        printf("will allocate block #%d\n",block+1);
-                        return block+1;
-                    } 
-                }
+                return block + 1;
             }
         }
         printf("oops,all blocks seems to be occupied\n");
-        return EINVAL;
+        return -EINVAL;
 }
-/*
- * make_dir functions
- */
+
+void init_inode(unsigned short inode_index, unsigned short size,char type ){
+        struct ext2_inode* node = ino_table + inode_index;
+        if ( size % 512 != 0 )
+            node->i_blocks = fsize/512 + 1;
+        else
+            node->i_blocks = fsize/512;
+        memset(node->i_block, 0 , 15);
+        node->i_file_acl = 0;
+        node->i_dir_acl = 0;
+        node->i_faddr = 0;
+        node->i_uid = 0;
+        node->i_gid = 0;
+        node->osd1 = 0;
+        node->i_generation = 0;
+        node->i_size = size;
+        if (type == 'd'){
+            node->i_links_count = 2;
+            node->i_mode = EXT2_S_IFDIR;
+        }
+        else if (type == 'f'){
+            node->i_links_count = 1;
+            node->i_mode = EXT2_S_IFREG;
+        }
+        printf("done initializing inode\n");
+}
+
+void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, unsigned char type){
+    int count,size;
+    struct ext2_dir_entry * dir;
+    int new_size = sizeof(struct ext2_dir_entry) + strlen(name);
+        if (new_size % 4 != 0){
+            new_size =4*(new_size) + 4;
+        }
+    
+    for (int i = 12 ; i > 0 ; i -- ){
+        if (ino_table[inum-1].i_block[i-1] != 0){
+            int dir_block_num = ino_table[inum-1].i_block[i-1];
+            printf("locate parent dir block num at %d\n",dir_block_num);
+            dir = (struct ext2_dir_entry *)(disk + (1024* (dir_block_num)) );
+            count = dir->rec_len;
+            printf("begin %d with rec_len %d \n",dir->inode,count);        
+            while (count <= 1024){
+                //reached at end pointer of this current block
+                if (count == 1024){       
+                    size = sizeof(struct ext2_dir_entry)+dir->name_len;
+                        if (size % 4 != 0){
+                            size =4*(size / 4) + 4;
+                        }
+                    printf("reached end block inode %d,size %d,new size %d\n",dir->inode,size,new_size);
+                    count = dir->rec_len - size;
+                    //no space, need to allocate new block
+                    if ( count - new_size < 0){
+                        printf("allocate needed\n");
+                        //allocate new block
+                        block_num = allocate_block(inum - 1);
+                        dir =(struct ext2_dir_entry *)(disk + (1024* (block_num)) );
+                        dir->file_type = type;
+                        dir->inode = inode_num;
+                        dir->name_len = strlen(name);
+                        strncpy(dir->name,name,dir->name_len);
+                        
+                        dir->rec_len = 1024;       
+                    }
+                    //there is space in this dir_block, add the new directory to it
+                    else{
+                        //changing current pointer from end of file to the new dir
+                        printf("size%d\n",size);
+                        dir->rec_len = size;
+                        dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
+                        dir->file_type = type;
+                        dir->inode = inode_num;
+                        dir->name_len = strlen(name);
+                        strncpy(dir->name,name,dir->name_len);
+                        
+                        dir->rec_len = count;       
+                        if (dir->rec_len % 4 != 0){
+                            dir->rec_len =4*(dir->rec_len / 4) + 4;
+                        }
+                        
+                    }
+                    //done updating, no point in looping
+                    printf("done updating parent dir, added inode %s,%d\n",dir->name,dir->rec_len);
+                    return;
+                }
+                dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
+                count += (int)dir->rec_len;
+                printf("end ,count now is %d\n",count);
+            }
+        }
+    }
+}
+/*============================================================
+ *    make_dir functions
+ */============================================================
 int make_dir(unsigned short inum, char* name){
     struct ext2_dir_entry * dir;
-    struct ext2_inode* node;
-    int count,size,inode_num,block_num;
+
+    int count,inode_num,block_num;
 
     // Allocating and writing to new inode section and new directory entry
     for (int i = 11 ; i < 32 ; i ++){
         if (! inode_bitmap[i] & 1){
             inode_num = i + 1;
-            allocate_block(inode_num - 1);
-            node = ino_table + i;
+            gd->bg_free_inodes_count --;
+            block_num = allocate_block( i );
+            for (int idx = 0; idx < 13 ; idx ++){
+                if ( (ino_table+i)->i_block[idx] == 0){
+                    (ino_table+i)->i_block[idx] = block_num;
+                    printf("Allocated block #%d\n",block_num);
+                } 
+            }
+            gd->bg_free_blocks_count --;
+            
             printf("will allocate inode #%d\n",inode_num);
             set_bitmap(disk+(1024 * gd->bg_inode_bitmap),i,'1');
             construct_bitmap(32, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
-            node->i_blocks = 2;
-            node->i_file_acl = 0;
-            node->i_dir_acl = 0;
-            node->i_faddr = 0;
-            node->i_uid = 0;
-            node->i_gid = 0;
-            node->osd1 = 0;
-            node->i_generation = 0;
-            node->i_size = 1024;
-            node->i_links_count = 2;
-            node->i_mode = EXT2_S_IFDIR;
-            printf("done initializing inode\n");
+            init_inode(i, 1024, 'd');
             //Allocate empty directory and writes to it with current dir and parent dir entries
             dir = (struct ext2_dir_entry *)(disk + (1024* (node->i_block[0])));
             dir->file_type = EXT2_FT_DIR;
@@ -272,78 +345,97 @@ int make_dir(unsigned short inum, char* name){
             if (dir->rec_len % 4 != 0){
                 dir->rec_len =4*(dir->rec_len / 4) + 4;
             }
+            gd->bg_used_dirs_count+=1;
             printf("DONE init new dir entry\n");
             break;
         }
     }
-    // Updating parent directory entry
+    // Updating parent directory entry (note will make this another helper function)
     ino_table[inum-1].i_links_count++;
-    int new_size = sizeof(struct ext2_dir_entry) + strlen(name);
-            if (new_size % 4 != 0){
-                new_size =4*(new_size) + 4;
-            }
-    for (int i = 12 ; i > 0 ; i -- ){
-        if (ino_table[inum-1].i_block[i-1] != 0){
-            int dir_block_num = ino_table[inum-1].i_block[i-1];
-            printf("locate parent dir block num at %d\n",dir_block_num);
-            dir = (struct ext2_dir_entry *)(disk + (1024* (dir_block_num)) );
-            count = dir->rec_len;
-            printf("begin %d with rec_len %d \n",dir->inode,count);
-            
-            
-            while (count <= 1024){
-                //reached at end pointer of this current block
-                if (count == 1024){
-                    
-                    size = sizeof(struct ext2_dir_entry)+dir->name_len;
-                    
-                        if (size % 4 != 0){
-                            size =4*(size / 4) + 4;
-                        }
-                    printf("reached end block inode %d,size %d,new size %d\n",dir->inode,size,new_size);
-                    count = dir->rec_len - size;
-                    //no space, need to allocate new block
-                    if ( count - new_size < 0){
-                        printf("allocate needed\n");
-                        //allocate new block
-                        block_num = allocate_block(inum - 1);
-                        dir =(struct ext2_dir_entry *)(disk + (1024* (block_num)) );
-                        dir->file_type = EXT2_FT_DIR;
-                        dir->inode = inode_num;
-                        dir->name_len = strlen(name);
-                        strncpy(dir->name,name,dir->name_len);
-                        
-                        dir->rec_len = 1024;       
-                    }
-                    //there is space in this dir_block, add the new directory to it
-                    else{
-                        //changing current pointer from end of file to the new dir
-                        printf("size%d\n",size);
-                        dir->rec_len = size;
-                        dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
-                        dir->file_type = EXT2_FT_DIR;
-                        dir->inode = inode_num;
-                        dir->name_len = strlen(name);
-                        strncpy(dir->name,name,dir->name_len);
-                        
-                        dir->rec_len = count;       
-                        if (dir->rec_len % 4 != 0){
-                            dir->rec_len =4*(dir->rec_len / 4) + 4;
-                        }
-                        
-                    }
-                    //done updating, no point in looping
-                    printf("done updating parent dir, added inode %s,%d\n",dir->name,dir->rec_len);
-                    break;
-                }
-                dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
-                count += (int)dir->rec_len;
-                printf("end ,count now is %d\n",count);
-            }
-        }
-    }
+    update_dir_entry(inum, inode_num, name, EXT2_FT_DIR);
     return 0;
 }
-/*
- * cp functions
- */
+/*=============================================================
+ *         cp functions
+ */=============================================================
+ int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path){
+         int fsize = (int)stats->st_size;
+         int total_blocks;
+         
+         if (fsize % 1024 != 0)
+             total_blocks = fsize/1024 + 1;
+         else
+             total_blocks = fsize/1024;
+         
+         if (total_blocks > 12 )
+             total_blocks ++;
+         
+         int blocks[total_blocks];
+         
+         printf("total blocks needed for this file:%d\n",total_blocks);
+         
+         //Preallocate blocks and inode for copying file
+         for (int i_index = 11 ; i < 32 ; i++){
+             //found next available inode from corresponding bitmap
+             if (inode_bitmap[i_index] != 1){
+                int inode = i_index + 1;
+                gd->bg_free_inodes_count -= 1;
+                //Filling in all needed info of newly allocated inode
+                init_inode(i_index, fsize, 'f');
+                struct ext2_inode* node = ino_table + i_index;
+                //Allocate all blocks needed and store block number into predefined bookmark array
+                int allocated = 0;
+                while (allocated < total_blocks){
+                    int block_num = allocate_block(i_index);
+                    //assigns block number to direct data blocks
+                    if (allocated < 12){
+                        node->i_block[allocated] = block_num;        
+                    }
+                    //needs to allocate single indirect block and assigns to it
+                    else{
+                        struct single_indirect_block* sib;
+                        if (allocated == 12){
+                            node->i_block[allocated] = block_num;
+                            sib = (struct single_indirect_block*)(disk + (1024* (block_num)) );
+                            sib[0] = block_num;
+                        }
+                        else{
+                            int index = allocated % 12;
+                            sib->blocks[index] = block_num;
+                        }
+                        printf("block allocating with single indirect done\n");
+                    }
+                    blocks[allocated] = block_num;
+                    allocated++;
+                }
+                printf("done allocating all blocks needed to copy file:\n");
+                for (int i = 0 ; i < total_blocks ; i ++){
+                    printf("[%d] ",blocks[i]);
+                }
+                puts("");
+                break;
+             }
+         }
+         //Perform raw data copying using fopen / fread
+         FILE *file = fopen( (const char*)source_path, "rb");
+         if (file == NULL){
+             perror("fopen");
+             return -EINVAL;
+         }
+         unsigned char buffer[1024] = { 0 };
+         int block_count = 0;
+         size_t b_read;
+         int total_read = 0;
+         //start reading from source file one block at a time and copy to disk image
+         while ( (b_read = fread(buffer, 1024, 1, file)) > 0){
+             if (block_count == total_blocks)
+                 printf("block_count reached total blocks, index error\n");
+             total_read += (int)b_read;
+             memcpy( (disk + 1024*blocks[block_count]), buffer, 1024);
+             memset(buffer, 0, 1024);
+             block_count ++;
+         }
+         printf("finished memory copying with total %d bytes, file size is %d bytes\n",)
+         //update parent directory
+         update_dir_entry(parent_inode,inode,new_dir,EXT2_FT_REG_FILE);
+ }
