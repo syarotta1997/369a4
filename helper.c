@@ -36,6 +36,7 @@ void construct_path_linkedlst(char* path){
     p->name[0] = '/';
     p->next = NULL;
     path = path + 1;
+    printf("given2: %s\n",path);
     int count = strlen(path)-1;
     struct path_lnk* cur = p;
     while (count > 0){
