@@ -26,15 +26,15 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Usage: %s <image file name> <absolute path of source file> <absolute path in image disk>\n", argv[0]);
         exit(1);
     }
-    struct stat sb;
+    struct stat stats;
     char * source_path = (char*)argv[2];
     char * target_path = (char*)argv[3];
     //Path validity checks
-    if (stat(argv[1], &sb) == -1) {
+    if (stat(argv[1], &stats) == -1) {
         perror("stat");
         exit(1);
     }
-    if ( ~(sb.st_mode & S_IFREG)){
+    if ( ~(stats.st_mode & S_IFREG)){
         fprintf(stderr,"%s: Source needs to be a regular file.\n",source_path);
         exit(1);
     }
@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
         perror("mmap");
         exit(1);
     }
-    int source_size = (int) sb.st_size;
+    int source_size = (int) stats.st_size;
     
     construct_path_linkedlst(target_path);
     
