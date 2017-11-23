@@ -13,10 +13,10 @@
 #include "ext2.h"
 
 //Self defined helper functions and structs
-struct path_lnk{
+typedef struct{
     char name[255];
     struct path_lnk* next;
-};
+}path_lnk;
 // extern variables
 extern unsigned char *disk;
 extern struct ext2_super_block *sb;
