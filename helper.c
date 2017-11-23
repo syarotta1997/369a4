@@ -30,6 +30,9 @@ char* new_dir;
  *                '/' -> ''usr   ->  'bin' -> '369'
  */
 void construct_path_linkedlst(char* path){
+    struct path_lnk* new,cur;
+    int count, index;
+    
     printf("given: %s\n",path);
     p = malloc(sizeof(struct path_lnk));
     memset(p->name,'\0',256);
@@ -37,15 +40,16 @@ void construct_path_linkedlst(char* path){
     p->next = NULL;
     path = path + 1;
     printf("given2: %s\n",path);
-    int count = strlen(path)-1;
-    struct path_lnk* cur = p;
+    count = strlen(path)-1;
+    cur = p;
     while (count > 0){
-        struct path_lnk* new = malloc(sizeof(struct path_lnk));
+        new = malloc(sizeof(struct path_lnk));
         memset(new->name,'\0',256);
         char* ptr = strchr(path, '/');
         if (ptr == NULL)
-            ptr = strlen(path);
-        int index = (int)(ptr - path);
+            index = strlen(path);
+        else
+            index = (int)(ptr - path);
         strncpy(new->name,path,index);
         new->next = NULL;
         cur->next = new;
