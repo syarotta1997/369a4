@@ -109,6 +109,37 @@ void set_bitmap(unsigned char* ptr, int index,char type){
         *(b+i) = *(b+i) & ~(1 << j);
 }
 
+char * chk_source_path(char* source_path, char* target_path){
+    char * f_name = strrchr(source_path,'/');
+    char * new = target_path;
+    struct stat stats;
+    if (stat( (const char *)source_path, &stats) == -1) {
+        perror("stat");
+        exit(1);
+    }
+    if ( ! S_ISREG(stats.st_mode)){
+        fprintf(stderr,"%s: Source needs to be a regular file.\n",source_path);
+        exit(1);
+    }
+    if (strrchr(new,'/') - new == strlen(new) - 1){
+        if (f_name == NULL)
+            strcat(new,source_path);
+        else
+            strcat(new,f_name+1);
+    }
+    else{
+        if (f_name == NULL){
+            strcat(new,"/");
+            strcat(new,source_path);
+        }
+        else
+            strcat(new,f_name);
+    }
+        
+    printf("target:%s\n",new);
+    return new;
+}
+
 int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path_lnk* p, char* type){
     struct ext2_dir_entry * new;
     struct ext2_dir_entry * cur = dir;

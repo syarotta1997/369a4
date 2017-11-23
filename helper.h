@@ -34,4 +34,5 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
 int allocate_block(int inode_idx);
 int make_dir(unsigned short inum, char* name);
 void destroy_list();
+char * chk_source_path(char* source_path, char* target_path);
 #endif // __SIM_H 

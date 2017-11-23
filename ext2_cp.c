@@ -27,40 +27,19 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    struct stat stats;
+    
     char * source_path = (char*)argv[2];
     char * target_path = (char*)argv[3];
-    char * f_name = strrchr(source_path,'/');
+    
     //Path validity checks
     if (target_path[0] != '/'){
         fprintf(stderr, "%s: <absolute path in image disk> should include root '/' \n", argv[2]);
         exit(1);
     }
-    if (stat(argv[2], &stats) == -1) {
-        perror("stat");
-        exit(1);
-    }
-    if ( ! S_ISREG(stats.st_mode)){
-        fprintf(stderr,"%s: Source needs to be a regular file.\n",source_path);
-        exit(1);
-    }
+    
+    char * new_path = chk_source_path;
 
-    if (strrchr(target_path,'/') - target_path == strlen(target_path) - 1){
-        if (f_name == NULL)
-            strcat(target_path,source_path);
-        else
-            strcat(target_path,f_name+1);
-    }
-    else{
-        if (f_name == NULL){
-            strcat(target_path,"/");
-            strcat(target_path,source_path);
-        }
-        else
-            strcat(target_path,f_name);
-    }
-        
-    printf("target:%s\n",target_path);
+
 
     
     //mapping memory onto disk and construct reference data structures
@@ -70,9 +49,8 @@ int main(int argc, char **argv) {
         perror("mmap");
         exit(1);
     }
-    int source_size = (int) stats.st_size;
     
-    construct_path_linkedlst(target_path);
+    construct_path_linkedlst(new_path);
     
     sb = (struct ext2_super_block *)(disk + 1024);
     gd = (struct ext2_group_desc *)(disk + (1024*2));
