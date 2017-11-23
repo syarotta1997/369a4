@@ -46,7 +46,6 @@ int main(int argc, char **argv) {
     }
     if (f_name == NULL){
         f_name = "/";
-        strcat(f_name,source_path);
         printf(f_name);
     }
     if (strrchr(target_path,'/') - target_path == strlen(target_path) - 1)
