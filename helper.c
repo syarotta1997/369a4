@@ -30,6 +30,7 @@ char* new_dir;
  *                '/' -> ''usr   ->  'bin' -> '369'
  */
 void construct_path_linkedlst(char* path){
+    printf("given: %s\n",path);
     p = malloc(sizeof(struct path_lnk));
     memset(p->name,'\0',256);
     p->name[0] = '/';
