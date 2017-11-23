@@ -106,7 +106,7 @@ void set_bitmap(unsigned char* ptr, int index,char type){
         *(b+i) = *(b+i) & ~(1 << j);
 }
 
-int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path_lnk* p£¬char* type){
+int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path_lnk* p, char* type){
     struct ext2_dir_entry * new;
     struct ext2_dir_entry * cur = dir;
     
