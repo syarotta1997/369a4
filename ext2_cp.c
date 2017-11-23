@@ -26,6 +26,10 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Usage: %s <image file name> <absolute path of source file> <absolute path in image disk>\n", argv[0]);
         exit(1);
     }
+    if (target_path[0] != '/'){
+        fprintf(stderr, "%s: <absolute path in image disk> should include root '/' \n", argv[2]);
+        exit(1);
+    }
     struct stat stats;
     char * source_path = (char*)argv[2];
     char * target_path = (char*)argv[3];
@@ -42,6 +46,7 @@ int main(int argc, char **argv) {
     if (f_name == NULL){
         f_name = "/";
         strcat(f_name,source_path);
+        printf(f_name);
     }
     if (strrchr(target_path,'/') - target_path == strlen(target_path) - 1)
         strcat(target_path,f_name+1);
@@ -50,10 +55,7 @@ int main(int argc, char **argv) {
         
     printf("target:%s\n",target_path);
 
-    if (target_path[0] != '/'){
-        fprintf(stderr, "%s: <absolute path in image disk> should include root '/' \n", argv[2]);
-        exit(1);
-    }
+    
     //mapping memory onto disk and construct reference data structures
     int fd = open(argv[1], O_RDWR);
     disk = mmap(NULL, DISK_BLOCK * EXT2_BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
