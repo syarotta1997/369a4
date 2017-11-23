@@ -32,8 +32,8 @@ char* new_dir;
  *                '/' -> ''usr   ->  'bin' -> '369'
  */
 void construct_path_linkedlst(char* path){
-    struct path_lnk* new;
-    struct path_lnk* cur;
+    struct path_lnk* new = NULL;
+    struct path_lnk* cur = NULL;
     int count, index;
     
     printf("given: %s\n",path);
@@ -60,7 +60,10 @@ void construct_path_linkedlst(char* path){
         path = path + index + 1;
         count -= strlen(new->name) + 1;
     }
-    new_dir = new->name;
+    if (new == NULL)
+        new_dir = "/";
+    else
+        new_dir = new->name;
     for (struct path_lnk* i = p; i != NULL; i = i->next){
         printf("%s",i->name);
     }
