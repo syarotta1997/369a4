@@ -52,8 +52,10 @@ int main(int argc, char **argv) {
             strcat(target_path,f_name+1);
     }
     else{
-        if (f_name == NULL)
+        if (f_name == NULL){
+            strcat(target_path,"/");
             strcat(target_path,source_path);
+        }
         else
             strcat(target_path,f_name);
     }
