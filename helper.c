@@ -10,14 +10,14 @@
 #include "ext2.h"
 #include "helper.h"
 
-extern unsigned char *disk;
-extern struct ext2_super_block *sb;
-extern struct ext2_group_desc *gd;
-extern struct ext2_inode *ino_table;
-extern unsigned char block_bitmap[128];
-extern unsigned char inode_bitmap[32];
-extern struct path_lnk* p;
-extern char* new_dir;
+unsigned char *disk;
+struct ext2_super_block *sb;
+struct ext2_group_desc *gd;
+struct ext2_inode *ino_table;
+unsigned char block_bitmap[128];
+unsigned char inode_bitmap[32];
+struct path_lnk* p;
+char* new_dir;
 
 /* 
  * A helper function that takes an absolute path as an argument and construct
