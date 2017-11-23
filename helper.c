@@ -248,7 +248,7 @@ int make_dir(unsigned short inum, char* name){
                         dir->file_type = EXT2_FT_DIR;
                         dir->inode = inode_num;
                         dir->name_len = strlen(name);
-                        strcnpy(dir->name,name,dir->name_len);
+                        strncpy(dir->name,name,dir->name_len);
                         
                         dir->rec_len = 1024;       
                     }
