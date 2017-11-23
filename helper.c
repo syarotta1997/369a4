@@ -58,10 +58,10 @@ void construct_path_linkedlst(char* path){
         path = path + index + 1;
         count -= strlen(new->name) + 1;
     }
-    printf("%s\n",p->name);
     for (struct path_lnk* i = p; i != NULL; i = i->next){
-        printf("%s\n",i->name);
+        printf("%s",i->name);
     }
+    puts("");
 }
 
 void destroy_list(struct path_lnk* p){
