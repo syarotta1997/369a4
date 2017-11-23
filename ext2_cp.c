@@ -80,8 +80,8 @@ int main(int argc, char **argv) {
     }
     //no error given, return is the parent directory i_node of dir to make
     else{
-        printf("now calling make_dir\n");
-        make_dir(result, new_dir);
+        printf("now calling copy\n");
+        //make_dir(result, new_dir);
     }
     printf("=================================================================\n");
         for (int i = 0; i < 32 ; i++){
