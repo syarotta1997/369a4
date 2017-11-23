@@ -8,6 +8,7 @@
 #include <string.h>
 #include <errno.h>
 #include "ext2.h"
+#include "helper.h"
 
 extern unsigned char *disk;
 extern struct ext2_super_block *sb;
