@@ -30,7 +30,10 @@ int main(int argc, char **argv) {
     char * source_path = (char*)argv[2];
     char * f_name = strrchr(source_path,'/');
     char * target_path = (char*)argv[3];
-    strcat(target_path,f_name);
+    if (strrchr(target_path,'/' - target_path) == strlen(target_path) - 1)
+        strcat(target_path,f_name+1);
+    else
+        strcat(target_path,f_name);
     printf("target:%s\n",target_path);
     //Path validity checks
     if (stat(argv[1], &stats) == -1) {
