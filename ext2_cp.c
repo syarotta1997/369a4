@@ -51,8 +51,12 @@ int main(int argc, char **argv) {
         else
             strcat(target_path,f_name+1);
     }
-    else
-        strcat(target_path,f_name);
+    else{
+        if (f_name == NULL)
+            strcat(target_path,source_path);
+        else
+            strcat(target_path,f_name);
+    }
         
     printf("target:%s\n",target_path);
 
