@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
     
-    char * new_path = chk_source_path;
+    char * new_path = chk_source_path(source_path, target_path);
 
 
 
