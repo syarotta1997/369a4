@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
         strcpy(f_name,"/");
         strcpy(f_name,source_path);
     }
-    else if (strrchr(target_path,'/') - target_path == strlen(target_path) - 1)
+    if (strrchr(target_path,'/') - target_path == strlen(target_path) - 1)
         strcat(target_path,f_name+1);
     else
         strcat(target_path,f_name);
