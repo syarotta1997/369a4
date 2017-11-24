@@ -60,8 +60,9 @@ int main(int argc, char **argv) {
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
     printf("\n");
     int root_block, result, source_inode;
-    struct ext2_dir_entry *dir = (struct ext2_dir_entry *)(disk + (1024* root_block));
     root_block = ino_table[1].i_block[0];
+    struct ext2_dir_entry *dir = (struct ext2_dir_entry *)(disk + (1024* root_block));
+    
     if (! symflag){
         construct_path_linkedlst(source_path);
         result = ftree_visit(dir, 2, p, "ln_s");
