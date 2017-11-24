@@ -431,7 +431,7 @@ int make_dir(unsigned short inum, char* name){
          size_t b_read;
          int total_read = 0;
          //start reading from source file one block at a time and copy to disk image
-         while ( (b_read = fread(buffer, 1024, 1, file)) > 0){
+         while ( (b_read = fread(buffer, 1, 1024, file)) > 0){
              if (block_count == total_blocks)
                  printf("block_count reached total blocks, index error\n");
              total_read += (int)b_read;
