@@ -398,7 +398,7 @@ int make_dir(unsigned short inum, char* name){
                         if (allocated == 12){
                             node->i_block[allocated] = block_num;
                             sib = (struct single_indirect_block*)(disk + (1024* (block_num)) );
-                            sib[0] = block_num;
+                            sib->blocks[0] = block_num;
                         }
                         else{
                             int index = allocated % 12;
