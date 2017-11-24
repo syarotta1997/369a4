@@ -312,20 +312,20 @@ int make_dir(unsigned short inum, char* name){
         if (! inode_bitmap[i] & 1){
             inode_num = i + 1;
             gd->bg_free_inodes_count --;
-            block_num = allocate_block( i );
-            for (int idx = 0; idx < 13 ; idx ++){
-                if ( (ino_table+i)->i_block[idx] == 0){
-                    (ino_table+i)->i_block[idx] = block_num;
-                    printf("Allocated block #%d\n",block_num);
-                } 
-            }
-            gd->bg_free_blocks_count --;
-            
             printf("will allocate inode #%d\n",inode_num);
             set_bitmap(disk+(1024 * gd->bg_inode_bitmap),i,'1');
             construct_bitmap(32, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
             init_inode(i, 1024, 'd');
             struct ext2_inode* node = ino_table + i;
+            block_num = allocate_block( i );
+            for (int idx = 0; idx < 13 ; idx ++){
+                if ( node->i_block[idx] == 0){
+                    node->i_block[idx] = block_num;
+                    printf("Allocated block #%d\n",block_num);
+                    break;
+                } 
+            }
+            gd->bg_free_blocks_count --;
             //Allocate empty directory and writes to it with current dir and parent dir entries
             dir = (struct ext2_dir_entry *)(disk + (1024* (node->i_block[0])));
             dir->file_type = EXT2_FT_DIR;
