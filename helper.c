@@ -240,6 +240,7 @@ void init_inode(unsigned short inode_index, unsigned short size,char type ){
         node->osd1 = 0;
         node->i_generation = 0;
         node->i_size = size;
+        node->i_dtime = 0;
         if (type == 'd'){
             node->i_links_count = 2;
             node->i_mode = EXT2_S_IFDIR;
@@ -317,9 +318,7 @@ void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, 
         }
     }
 }
-/*
- *    make_dir functions
- */
+
 int make_dir(unsigned short inum, char* name){
     struct ext2_dir_entry * dir;
     int count,inode_index,block_num;
@@ -367,10 +366,8 @@ int make_dir(unsigned short inum, char* name){
     update_dir_entry(inum, inode_index + 1, name, EXT2_FT_DIR);
     return 0;
 }
-/*
- *         cp functions
- */
- int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path){
+
+int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path){
          int fsize = (int)stats->st_size;
          int total_blocks,inode;
          if (fsize % 1024 != 0)
@@ -446,3 +443,13 @@ int make_dir(unsigned short inum, char* name){
          fclose(file);
          return 0;
  }
+
+int hard_link(unsigned short source_inode){
+    printf("Starting hard link process\n");
+    return 0;
+}
+
+int sym_link(char* path){
+    printf("Starting sym link process\n");
+    return 0;
+}
