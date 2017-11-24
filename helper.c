@@ -196,16 +196,33 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     }
 }
 
-int allocate_block(int inode_idx){
+int allocate_block(){
         for(int block = 0; block < 128; block++){
             if (! block_bitmap[block] & 1){
                 set_bitmap(disk+(1024 * gd->bg_block_bitmap),block,'1');
                 construct_bitmap(128, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
+                gd->bg_free_blocks_count --;
+                sb->s_free_blocks_count --;
                 return block + 1;
             }
         }
         printf("oops,all blocks seems to be occupied\n");
-        return -EINVAL;
+        return -ENOSPC;
+}
+
+int allocate_inode(){
+        for(int i = 0; i < 32; i++){
+            if (! inode_bitmap[i] & 1){
+                gd->bg_free_inodes_count --;
+                sb->s_free_inodes_count --;
+                printf("will allocate inode #%d\n",i+1);
+                set_bitmap(disk+(1024 * gd->bg_inode_bitmap),i,'1');
+                construct_bitmap(32, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
+                return i;
+            }
+        }
+        printf("oops,all blocks seems to be occupied\n");
+        return -ENOSPC;
 }
 
 void init_inode(unsigned short inode_index, unsigned short size,char type ){
@@ -263,6 +280,7 @@ void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, 
                         printf("allocate needed\n");
                         //allocate new block
                         int block_num = allocate_block(inum - 1);
+                        (ino_table+inum-1)->i_block[i] = block_num;
                         dir =(struct ext2_dir_entry *)(disk + (1024* (block_num)) );
                         dir->file_type = type;
                         dir->inode = inode_num;
@@ -304,56 +322,49 @@ void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, 
  */
 int make_dir(unsigned short inum, char* name){
     struct ext2_dir_entry * dir;
-
-    int count,inode_num,block_num;
-
+    int count,inode_index,block_num;
     // Allocating and writing to new inode section and new directory entry
-    for (int i = 11 ; i < 32 ; i ++){
-        if (! inode_bitmap[i] & 1){
-            inode_num = i + 1;
-            gd->bg_free_inodes_count --;
-            printf("will allocate inode #%d\n",inode_num);
-            set_bitmap(disk+(1024 * gd->bg_inode_bitmap),i,'1');
-            construct_bitmap(32, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
-            init_inode(i, 1024, 'd');
-            struct ext2_inode* node = ino_table + i;
-            block_num = allocate_block( i );
-            for (int idx = 0; idx < 13 ; idx ++){
-                if ( node->i_block[idx] == 0){
-                    node->i_block[idx] = block_num;
-                    printf("Allocated block #%d\n",block_num);
-                    break;
-                } 
-            }
-            gd->bg_free_blocks_count --;
-            //Allocate empty directory and writes to it with current dir and parent dir entries
-            dir = (struct ext2_dir_entry *)(disk + (1024* (node->i_block[0])));
-            dir->file_type = EXT2_FT_DIR;
-            dir->inode = inode_num;
-            strncpy(dir->name,".",1);
-            dir->name_len = 1;
-            dir->rec_len = sizeof(struct ext2_dir_entry) + dir->name_len;
-            if (dir->rec_len % 4 != 0){
-                dir->rec_len = 4*(dir->rec_len / 4) + 4;
-            }
-            count = dir->rec_len;
-            dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
-            dir->file_type = EXT2_FT_DIR;
-            dir->inode = inum;
-            strncpy(dir->name,"..",2);
-            dir->name_len = 2;
-            dir->rec_len = 1024 - count;       
-            if (dir->rec_len % 4 != 0){
-                dir->rec_len =4*(dir->rec_len / 4) + 4;
-            }
-            gd->bg_used_dirs_count+=1;
-            printf("DONE init new dir entry\n");
+    inode_index = allocate_inode();
+    init_inode(inode_index, 1024, 'd');
+    struct ext2_inode* node = ino_table + inode_index;
+    block_num = allocate_block( inode_index );
+    //for this assignment we don't need to handle indirect blocks for directories
+    for (int idx = 0; idx < 12 ; idx ++){
+        if ( node->i_block[idx] == 0){
+            node->i_block[idx] = block_num;
+            printf("Assigned block #%d to node->i_block.\n",block_num);
             break;
-        }
+        } 
     }
+    //Allocate empty directory entry and writes to it with current dir and parent dir entries
+    //cur dir
+    dir = (struct ext2_dir_entry *)(disk + (1024* (node->i_block[0])));
+    dir->file_type = EXT2_FT_DIR;
+    dir->inode = inode_index + 1;
+    strncpy(dir->name,".",1);
+    dir->name_len = 1;
+    dir->rec_len = sizeof(struct ext2_dir_entry) + dir->name_len;
+    if (dir->rec_len % 4 != 0){
+        dir->rec_len = 4*(dir->rec_len / 4) + 4;
+    }
+    count = dir->rec_len;
+    //parent dir
+    dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
+    dir->file_type = EXT2_FT_DIR;
+    dir->inode = inum;
+    strncpy(dir->name,"..",2);
+    dir->name_len = 2;
+    dir->rec_len = 1024 - count;       
+    if (dir->rec_len % 4 != 0){
+        dir->rec_len =4*(dir->rec_len / 4) + 4;
+    }
+    
+    printf("DONE init new dir entry\n");
+
     // Updating parent directory entry (note will make this another helper function)
     ino_table[inum-1].i_links_count++;
-    update_dir_entry(inum, inode_num, name, EXT2_FT_DIR);
+    gd->bg_used_dirs_count+=1;
+    update_dir_entry(inum, inode_index + 1, name, EXT2_FT_DIR);
     return 0;
 }
 /*
@@ -362,63 +373,53 @@ int make_dir(unsigned short inum, char* name){
  int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path){
          int fsize = (int)stats->st_size;
          int total_blocks,inode;
-         
          if (fsize % 1024 != 0)
              total_blocks = fsize/1024 + 1;
          else
              total_blocks = fsize/1024;
-         
          if (total_blocks > 12 )
              total_blocks ++;
-         
          int blocks[total_blocks];
          
          printf("total blocks needed for this file:%d\n",total_blocks);
          
          //Preallocate blocks and inode for copying file
-         for (int i_index = 11 ; i_index < 32 ; i_index++){
-             //found next available inode from corresponding bitmap
-             if (inode_bitmap[i_index] != 1){
-                inode = i_index + 1;
-                gd->bg_free_inodes_count -= 1;
-                set_bitmap(disk+(1024 * gd->bg_inode_bitmap),i_index,'1');
-                construct_bitmap(32, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
-                //Filling in all needed info of newly allocated inode
-                init_inode(i_index, fsize, 'f');
-                struct ext2_inode* node = ino_table + i_index;
-                //Allocate all blocks needed and store block number into predefined bookmark array
-                int allocated = 0;
-                while (allocated < total_blocks){
-                    int block_num = allocate_block(i_index);
-                    //assigns block number to direct data blocks
-                    if (allocated < 12){
-                        node->i_block[allocated] = block_num;        
-                    }
-                    //needs to allocate single indirect block and assigns to it
-                    else{
-                        struct single_indirect_block* sib;
-                        if (allocated == 12){
-                            node->i_block[allocated] = block_num;
-                            sib = (struct single_indirect_block*)(disk + (1024* (block_num)) );
-                            sib->blocks[0] = block_num;
-                        }
-                        else{
-                            int index = allocated % 12;
-                            sib->blocks[index] = block_num;
-                        }
-                        printf("block allocating with single indirect done\n");
-                    }
-                    blocks[allocated] = block_num;
-                    allocated++;
+        int i_index = allocate_inode();
+        inode = i_index + 1;
+        //Filling in all needed info of newly allocated inode
+        init_inode(i_index, fsize, 'f');
+        struct ext2_inode* node = ino_table + i_index;
+        //Allocate all blocks needed and store block number into predefined bookmark array
+        int allocated = 0;
+        while (allocated < total_blocks){
+            int block_num = allocate_block(i_index);
+            //assigns block number to direct data blocks
+            if (allocated < 12){
+                node->i_block[allocated] = block_num;        
+            }
+            //needs to allocate single indirect block and assigns to it
+            else{
+                struct single_indirect_block* sib;
+                if (allocated == 12){
+                    node->i_block[allocated] = block_num;
+                    sib = (struct single_indirect_block*)(disk + (1024* (block_num)) );
+                    sib->blocks[0] = block_num;
                 }
-                printf("done allocating all blocks needed to copy file:\n");
-                for (int i = 0 ; i < total_blocks ; i ++){
-                    printf("[%d] ",blocks[i]);
+                else{
+                    int index = allocated % 12;
+                    sib->blocks[index] = block_num;
                 }
-                puts("");
-                break;
-             }
-         }
+                printf("block allocating with single indirect done\n");
+            }
+            blocks[allocated] = block_num;
+            allocated++;
+        }
+        printf("done allocating all blocks needed to copy file:\n");
+        for (int i = 0 ; i < total_blocks ; i ++){
+            printf("[%d] ",blocks[i]);
+        }
+        puts("");
+
          //Perform raw data copying using fopen / fread
          FILE *file = fopen( (const char*)source_path, "rb");
          if (file == NULL){
