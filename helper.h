@@ -42,5 +42,5 @@ char * chk_source_path(char* source_path, char* target_path);
 void init_inode(unsigned short inode_index, unsigned short size,char type );
 int make_dir(unsigned short inum, char* name);
 int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path);
-void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name,  char* type);
+void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, unsigned char type);
 #endif // __HEALPER_H

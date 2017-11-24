@@ -211,9 +211,9 @@ int allocate_block(int inode_idx){
 void init_inode(unsigned short inode_index, unsigned short size,char type ){
         struct ext2_inode* node = ino_table + inode_index;
         if ( size % 512 != 0 )
-            node->i_blocks = fsize/512 + 1;
+            node->i_blocks = size/512 + 1;
         else
-            node->i_blocks = fsize/512;
+            node->i_blocks = size/512;
         memset(node->i_block, 0 , 15);
         node->i_file_acl = 0;
         node->i_dir_acl = 0;
@@ -262,7 +262,7 @@ void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, 
                     if ( count - new_size < 0){
                         printf("allocate needed\n");
                         //allocate new block
-                        block_num = allocate_block(inum - 1);
+                        int block_num = allocate_block(inum - 1);
                         dir =(struct ext2_dir_entry *)(disk + (1024* (block_num)) );
                         dir->file_type = type;
                         dir->inode = inode_num;
@@ -299,9 +299,9 @@ void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, 
         }
     }
 }
-/*============================================================
+/*
  *    make_dir functions
- */============================================================
+ */
 int make_dir(unsigned short inum, char* name){
     struct ext2_dir_entry * dir;
 
@@ -355,9 +355,9 @@ int make_dir(unsigned short inum, char* name){
     update_dir_entry(inum, inode_num, name, EXT2_FT_DIR);
     return 0;
 }
-/*=============================================================
+/*
  *         cp functions
- */=============================================================
+ */
  int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path){
          int fsize = (int)stats->st_size;
          int total_blocks;
