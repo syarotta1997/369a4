@@ -64,7 +64,7 @@ void construct_path_linkedlst(char* path){
     else
         new_dir = new->name;
     for (struct path_lnk* i = p; i != NULL; i = i->next){
-        printf("%s",i->name);
+        printf("%s ",i->name);
     }
     puts("");
 }
