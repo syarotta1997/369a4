@@ -325,6 +325,7 @@ int make_dir(unsigned short inum, char* name){
             set_bitmap(disk+(1024 * gd->bg_inode_bitmap),i,'1');
             construct_bitmap(32, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
             init_inode(i, 1024, 'd');
+            struct ext2_inode* node = ino_table + i;
             //Allocate empty directory and writes to it with current dir and parent dir entries
             dir = (struct ext2_dir_entry *)(disk + (1024* (node->i_block[0])));
             dir->file_type = EXT2_FT_DIR;
@@ -360,7 +361,7 @@ int make_dir(unsigned short inum, char* name){
  */
  int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path){
          int fsize = (int)stats->st_size;
-         int total_blocks;
+         int total_blocks,inode;
          
          if (fsize % 1024 != 0)
              total_blocks = fsize/1024 + 1;
@@ -375,10 +376,10 @@ int make_dir(unsigned short inum, char* name){
          printf("total blocks needed for this file:%d\n",total_blocks);
          
          //Preallocate blocks and inode for copying file
-         for (int i_index = 11 ; i < 32 ; i++){
+         for (int i_index = 11 ; i_index < 32 ; i_index++){
              //found next available inode from corresponding bitmap
              if (inode_bitmap[i_index] != 1){
-                int inode = i_index + 1;
+                inode = i_index + 1;
                 gd->bg_free_inodes_count -= 1;
                 //Filling in all needed info of newly allocated inode
                 init_inode(i_index, fsize, 'f');
@@ -435,7 +436,8 @@ int make_dir(unsigned short inum, char* name){
              memset(buffer, 0, 1024);
              block_count ++;
          }
-         printf("finished memory copying with total %d bytes, file size is %d bytes\n",)
+         printf("finished memory copying with total %d bytes, file size is %d bytes\n",total_read,fsize);
          //update parent directory
          update_dir_entry(parent_inode,inode,new_dir,EXT2_FT_REG_FILE);
+         fclose(file);
  }
