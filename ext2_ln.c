@@ -22,7 +22,8 @@ extern char* new_dir;
 
 int main(int argc, char **argv) {
     int symflag = 0;
-    char* source_path, link_path;
+    char* source_path = "";
+    char* link_path = "";
     //argument validity checks
     if(argc < 4 || argc > 5) {
         fprintf(stderr, "Usage: %s <image file name> [-s] <absolute path of file> <absolute path of link>\n", argv[0]);
