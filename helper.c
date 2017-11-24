@@ -443,4 +443,5 @@ int make_dir(unsigned short inum, char* name){
          //update parent directory
          update_dir_entry(parent_inode,inode,new_dir,EXT2_FT_REG_FILE);
          fclose(file);
+         return 0;
  }
