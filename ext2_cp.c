@@ -55,6 +55,8 @@ int main(int argc, char **argv) {
     
     sb = (struct ext2_super_block *)(disk + 1024);
     gd = (struct ext2_group_desc *)(disk + (1024*2));
+    if (gd->bg_free_blocks_count ==0 || gd->bg_free_inodes_count == 0)
+        return ENOSPC;
     construct_bitmap(DISK_BLOCK, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
     construct_bitmap(sb->s_inodes_count, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));

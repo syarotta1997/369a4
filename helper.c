@@ -42,7 +42,7 @@ void construct_path_linkedlst(char* path){
     p->name[0] = '/';
     p->next = NULL;
     path = path + 1;
-    count = strlen(path)-1;
+    count = strlen(path);
     cur = p;
     while (count > 0){
         new = malloc(sizeof(struct path_lnk));
