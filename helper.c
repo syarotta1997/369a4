@@ -381,6 +381,8 @@ int make_dir(unsigned short inum, char* name){
              if (inode_bitmap[i_index] != 1){
                 inode = i_index + 1;
                 gd->bg_free_inodes_count -= 1;
+                set_bitmap(disk+(1024 * gd->bg_inode_bitmap),i_index,'1');
+                construct_bitmap(32, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
                 //Filling in all needed info of newly allocated inode
                 init_inode(i_index, fsize, 'f');
                 struct ext2_inode* node = ino_table + i_index;
@@ -423,6 +425,7 @@ int make_dir(unsigned short inum, char* name){
              perror("fopen");
              return -EINVAL;
          }
+         fseek(file, 0 , SEEK_SET);
          unsigned char buffer[1024] = { 0 };
          int block_count = 0;
          size_t b_read;
