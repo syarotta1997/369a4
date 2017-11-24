@@ -22,21 +22,21 @@ extern char* new_dir;
 
 int main(int argc, char **argv) {
     int symflag = 0;
-    char* source_path, link_path,result;
+    char* source_path, link_path;
     //argument validity checks
     if(argc < 4 || argc > 5) {
         fprintf(stderr, "Usage: %s <image file name> [-s] <absolute path of file> <absolute path of link>\n", argv[0]);
         return EINVAL;
     }
     else if (argc == 5){
-        if (! strcmp(argc[2],"-s") == 0){
+        if (! strcmp(argv[2],"-s") == 0){
             fprintf(stderr, "Usage: %s <image file name> [-s] <absolute path of file> <absolute path of link>\n", argv[0]);
             return EINVAL;
         }
         else{
             symflag = 1;
-            source_path = (char*)argv[3];
-            link_path = (char*)argv[4];
+            source_path = (char*) (argv[3]);
+            link_path = (char*) (argv[4]);
         }
     }
     else{
@@ -58,8 +58,8 @@ int main(int argc, char **argv) {
     construct_bitmap(sb->s_inodes_count, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
     printf("\n");
-    struct ext2_dir_entry *dir = (struct ext2_dir_entry *)(disk + (1024* root_block));
     int root_block, result, source_inode;
+    struct ext2_dir_entry *dir = (struct ext2_dir_entry *)(disk + (1024* root_block));
     root_block = ino_table[1].i_block[0];
     if (! symflag){
         construct_path_linkedlst(source_path);
