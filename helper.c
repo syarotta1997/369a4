@@ -279,7 +279,7 @@ void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, 
                     if ( count - new_size < 0){
                         printf("allocate needed\n");
                         //allocate new block
-                        int block_num = allocate_block(inum - 1);
+                        int block_num = allocate_block();
                         (ino_table+inum-1)->i_block[i] = block_num;
                         dir =(struct ext2_dir_entry *)(disk + (1024* (block_num)) );
                         dir->file_type = type;
