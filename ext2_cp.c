@@ -57,8 +57,10 @@ int main(int argc, char **argv) {
     construct_bitmap(sb->s_inodes_count, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
     printf("\n");
+    
     if (chk_source_path(source_path,target_path) == EEXIST)
         return EEXIST;
+    printf("passed\n");
     construct_path_linkedlst(target_path);
     int root_block,result;
     root_block = ino_table[1].i_block[0];
