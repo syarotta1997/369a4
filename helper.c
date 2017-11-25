@@ -117,7 +117,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     int count = (int)cur->rec_len; 
     int size = ino_table[cur->inode - 1].i_size;
       
-    printf("============== layer %d,%d,%s\n\n",count,size,p->name);
+    printf("============== layer %d,%d,%s\n\n",count,size,dir->name);
     while ( count <= size ){
         char name[cur->name_len+1];
         memset(name, '\0', cur->name_len+1);
