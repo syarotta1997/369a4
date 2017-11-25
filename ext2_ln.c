@@ -78,10 +78,13 @@ int main(int argc, char **argv) {
     if (result < 0)
         return -result;
     else{
+         char * link_name = strrchr(source_path,'/');
+         if (link_name == NULL)
+             link_name = source_path;
         if (symflag)
-            sym_link(result, link_path);
+            sym_link(result, link_path, link_name);
         else
-            hard_link(source_inode);
+            hard_link(source_inode,link_name);
     }
     
     

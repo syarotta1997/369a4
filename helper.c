@@ -18,6 +18,7 @@ unsigned char block_bitmap[128];
 unsigned char inode_bitmap[32];
 struct path_lnk* p;
 char* new_dir;
+char dir_flag;
 
 /*
  * Utility functions
@@ -164,7 +165,8 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                     if (strcmp(type,"mkdir") == 0){
                         return -EEXIST;
                     }
-                    else if (strcmp(type,"cp") == 0){
+                    else if (strcmp(type,"cp") == 0 || strcmp(type,"ln_l") == 0){
+                        dir_flag = 'd';
                         return cur->inode;
                     }
                     else if (strcmp(type,"ln_s") == 0){
@@ -452,17 +454,23 @@ int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path)
          }
          printf("finished memory copying with total %d bytes, file size is %d bytes\n",total_read,fsize);
          //update parent directory
-         update_dir_entry(parent_inode,inode,new_dir,EXT2_FT_REG_FILE);
+         char * f_name = strrchr(source_path,'/');
+         if (f_name == NULL)
+             f_name = source_path;
+         if (dir_flag == 'd')
+             update_dir_entry(parent_inode,inode,f_name,EXT2_FT_REG_FILE);
+         else
+             update_dir_entry(parent_inode,inode,new_dir,EXT2_FT_REG_FILE);
          fclose(file);
          return 0;
  }
 
-int hard_link(unsigned short source_inode){
+int hard_link(unsigned short source_inode,char* link_name){
     printf("Starting hard link process\n");
     return 0;
 }
 
-int sym_link(unsigned short parent_inode, char* path){
+int sym_link(unsigned short parent_inode, char* path,char* link_name){
     printf("Starting sym link process\n");
     return 0;
 }
