@@ -109,16 +109,6 @@ void set_bitmap(unsigned char* ptr, int index,char type){
 }
 
 int pad_path(char* source_path, char* target_path){
-    char * f_name = strrchr(source_path,'/');
-    if (dir_flag == 'd'){
-        strcat(target_path,f_name);
-    }
-    else{
-        if (f_name == NULL)
-            strcat(target_path,source_path);
-        else
-            strcat(target_path,f_name+1);
-    }
     return 0;
 }
 

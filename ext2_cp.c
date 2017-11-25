@@ -60,14 +60,15 @@ int main(int argc, char **argv) {
     printf("\n");
     
     //handles ending slash
-    if ( strrchr(target_path,'/') == target_path - 1){
-        dir_flag = 'd';
-        pad_path(source_path,target_path);
-    }
-    
     char * f_name = strrchr(source_path,'/');
     if (f_name == NULL)
          f_name = source_path;
+    if ( strrchr(target_path,'/') == target_path - 1){
+        dir_flag = 'd';
+        strcat(target_path,f_name);
+    }
+    
+    
         
     construct_path_linkedlst(target_path);
     int root_block,result;
