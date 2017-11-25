@@ -449,16 +449,16 @@ int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path)
          return 0;
  }
 
-int hard_link(unsigned short source_inode,unsigned short parent_inode,char* link_name){
+int hard_link(unsigned short source_inode,unsigned short parent_inode){
     printf("Starting hard link process\n");
     if (dir_flag == 'd')
-        update_dir_entry(parent_inode,source_inode,link_name,EXT2_FT_SYMLINK);
+        update_dir_entry(parent_inode,source_inode,new_name,EXT2_FT_SYMLINK);
     else
         update_dir_entry(parent_inode,source_inode,new_dir,EXT2_FT_SYMLINK);
     return 0;
 }
 
-int sym_link(unsigned short parent_inode, char* path,char* link_name){
+int sym_link(unsigned short parent_inode, char* path){
     printf("Starting sym link process\n");
     return 0;
 }

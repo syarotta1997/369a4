@@ -18,7 +18,9 @@ extern struct ext2_inode *ino_table;
 extern unsigned char block_bitmap[128];
 extern unsigned char inode_bitmap[32];
 extern struct path_lnk* p;
-extern char* new_dir,new_name;
+extern char* new_dir;
+extern char* new_name;
+extern char dir_flag;
 
 int main(int argc, char **argv) {
     int symflag = 0;
@@ -59,6 +61,7 @@ int main(int argc, char **argv) {
     construct_bitmap(sb->s_inodes_count, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
     printf("\n");
+    
     int root_block, result, source_inode;
     root_block = ino_table[1].i_block[0];
     struct ext2_dir_entry *dir = (struct ext2_dir_entry *)(disk + (1024* root_block));
@@ -78,24 +81,19 @@ int main(int argc, char **argv) {
     if (f_name == NULL)
          f_name = link_path;
     if ( strrchr(link_path,'/') == (link_path + strlen(link_path) - 1)){
-        dir_flag = 'd';
         strcat(link_path,f_name);
         printf("new target:%s\n",link_path);
     }  
     construct_path_linkedlst(link_path);
+    new_name = f_name;
     result = ftree_visit(dir, 2, p->next, "ln_l");
     if (result < 0)
         return -result;
     else{
-         char * link_name = strrchr(source_path,'/');
-         if (link_name == NULL)
-             link_name = source_path;
-         else
-             link_name += 1;
         if (symflag)
-            sym_link(result, link_path, link_name);
+            sym_link(result, link_path);
         else
-            hard_link(source_inode,result,link_name);
+            hard_link(source_inode,result);
     }
     
     
