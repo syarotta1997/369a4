@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
         if (symflag)
             sym_link(result, link_path, link_name);
         else
-            hard_link(source_inode,link_name);
+            hard_link(source_inode,result,link_name);
     }
     
     

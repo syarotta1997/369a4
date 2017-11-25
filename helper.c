@@ -465,8 +465,9 @@ int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path)
          return 0;
  }
 
-int hard_link(unsigned short source_inode,char* link_name){
+int hard_link(unsigned short source_inode,unsigned short parent_inode,char* link_name){
     printf("Starting hard link process\n");
+    update_dir_entry(parent_inode,source_inode,link_name,EXT2_FT_SYMLINK);
     return 0;
 }
 
