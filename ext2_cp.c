@@ -65,12 +65,10 @@ int main(int argc, char **argv) {
          f_name = source_path;
     if ( strrchr(target_path,'/') == (target_path + strlen(target_path) - 1)){
         dir_flag = 'd';
+        new_dir = f_name
         strcat(target_path,f_name);
         printf("new target:%s\n",target_path);
-    }
-    
-    
-        
+    }   
     construct_path_linkedlst(target_path);
     int root_block,result;
     root_block = ino_table[1].i_block[0];
@@ -81,6 +79,10 @@ int main(int argc, char **argv) {
     else{
         copy_file(&stats, result,source_path,f_name);
     }
+    
+    
+    
+    
     printf("=================================================================\n");
         for (int i = 0; i < 32 ; i++){
         if ( (i == 1 || i > 10) && inode_bitmap[i] & 1){

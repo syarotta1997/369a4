@@ -73,6 +73,15 @@ int main(int argc, char **argv) {
         else
             source_inode = result;
     }
+    //handles ending slash for link_path
+    char * f_name = strrchr(link_path,'/');
+    if (f_name == NULL)
+         f_name = link_path;
+    if ( strrchr(link_path,'/') == (link_path + strlen(link_path) - 1)){
+        dir_flag = 'd';
+        strcat(link_path,f_name);
+        printf("new target:%s\n",link_path);
+    }  
     construct_path_linkedlst(link_path);
     result = ftree_visit(dir, 2, p->next, "ln_l");
     if (result < 0)

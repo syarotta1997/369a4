@@ -149,7 +149,11 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                     }
                     else if (strcmp(type,"cp") == 0 || strcmp(type,"ln_l") == 0){
                         dir_flag = 'd';
-                        return cur->inode;
+                        struct path_lnk* new = malloc(sizeof(struct path_lnk));
+                        memset(p->name,'\0',255);
+                        strcpy(new->name,new_dir);
+                        new->next = NULL;
+                        p->next = new;
                     }
                     else if (strcmp(type,"ln_s") == 0){
                         printf("ln: hard link refering to a dir\n");
