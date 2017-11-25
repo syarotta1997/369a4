@@ -135,7 +135,7 @@ int chk_source_path(char* source_path, char* target_path){
     if (! check == -EEXIST)
         return 0;
     else
-        return EEXIST;
+        return -EEXIST;
 }
 
 int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path_lnk* p, char* type){

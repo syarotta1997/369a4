@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
     printf("\n");
     
-    if (chk_source_path(source_path,target_path) == EEXIST)
+    if (chk_source_path(source_path,target_path) == -EEXIST)
         return EEXIST;
     printf("passed\n");
     construct_path_linkedlst(target_path);
