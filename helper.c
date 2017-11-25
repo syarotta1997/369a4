@@ -320,7 +320,7 @@ void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, 
     }
 }
 
-int make_dir(unsigned short inum, char* name){
+int make_dir(unsigned short inum){
     struct ext2_dir_entry * dir;
     int count,inode_index,block_num;
     // Allocating and writing to new inode section and new directory entry
@@ -364,7 +364,7 @@ int make_dir(unsigned short inum, char* name){
     // Updating parent directory entry (note will make this another helper function)
     ino_table[inum-1].i_links_count++;
     gd->bg_used_dirs_count+=1;
-    update_dir_entry(inum, inode_index + 1, name, EXT2_FT_DIR);
+    update_dir_entry(inum, inode_index + 1, new_dir, EXT2_FT_DIR);
     return 0;
 }
 

@@ -24,26 +24,22 @@ int main(int argc, char **argv) {
     //argument validity checks
     if(argc != 3) {
         fprintf(stderr, "Usage: %s <image file name> <absolute path to directory>\n", argv[0]);
-        exit(ENOENT);
+        return ENOENT;
     }
     
     char * path = (char*)argv[2];
-    
-    if (path[0] != '/'){
-        fprintf(stderr, "%s: <absolute path to directory> should include root '/' \n", argv[2]);
-        exit(ENOENT);
-    }
+
     //mapping memory onto disk and construct reference data structures
     int fd = open(argv[1], O_RDWR);
     disk = mmap(NULL, DISK_BLOCK * EXT2_BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if(disk == MAP_FAILED) {
         perror("mmap");
-        exit(ENOENT);
+        return ENOENT;
     }
     construct_path_linkedlst(path);
     if ( (strcmp(p->name,"/"))==0 && p->next==NULL){
         printf("%s : %s Root directory cannot be created\n",argv[0],p->name);
-        exit(ENOENT);
+        return EINVAL;
     }
     sb = (struct ext2_super_block *)(disk + 1024);
     gd = (struct ext2_group_desc *)(disk + (1024*2) );
@@ -51,32 +47,18 @@ int main(int argc, char **argv) {
         return ENOSPC;
     construct_bitmap(DISK_BLOCK, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
     construct_bitmap(sb->s_inodes_count, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
-    printf("\n");
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
-    int result;
-    for (int i = 0;i<128;i++){
-        printf("%u ",block_bitmap[i]);
-    }
-    for (int i_idx = 0; i_idx < 15; i_idx++){
-        int block_num = ino_table[1].i_block[i_idx];
-        if (  block_num != 0){
-            printf("root block %d\n",block_num);
-            struct ext2_dir_entry * root = (struct ext2_dir_entry *)(disk + (1024* (block_num))) ;
-            result = ftree_visit(root, 2 ,p->next,"mkdir");
-        }
-    }
-    if (result == -EEXIST){
-        printf("%s : Cannot create directory, %s already exists\n",argv[0],path);
-        exit(1);
-    }
-    else if (result == -ENOENT){
-        printf("%s : Invalid path %s\n",argv[0],path);
-        exit(1);
-    }
-    //no error given, return is the parent directory i_node of dir to make
+    
+    printf("\n");
+    construct_path_linkedlst(path);
+    int root_block,result;
+    root_block = ino_table[1].i_block[0];
+    struct ext2_dir_entry *dir = (struct ext2_dir_entry *)(disk + (1024* root_block));
+    result = ftree_visit(dir, 2, p->next, "mkdir");
+    if (result < 0)
+        return -result;
     else{
-        printf("now calling make_dir\n");
-        make_dir(result, new_dir);
+        mkdir(result);
     }
     printf("=================================================================\n");
         for (int i = 0; i < 32 ; i++){
