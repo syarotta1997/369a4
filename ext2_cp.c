@@ -18,7 +18,7 @@ extern struct ext2_inode *ino_table;
 extern unsigned char block_bitmap[128];
 extern unsigned char inode_bitmap[32];
 extern struct path_lnk* p;
-extern char* new_dir;
+extern char* new_dir,new_name;
 extern char dir_flag;
 
 int main(int argc, char **argv) {
@@ -72,8 +72,7 @@ int main(int argc, char **argv) {
     
     printf("new_dir:%s\n",new_dir);
     construct_path_linkedlst(target_path);
-    if (dir_flag == 'd')
-        new_dir = f_name;
+    new_name = f_name;
     int root_block,result;
     root_block = ino_table[1].i_block[0];
     struct ext2_dir_entry *dir = (struct ext2_dir_entry *)(disk + (1024* root_block));

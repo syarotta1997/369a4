@@ -17,7 +17,7 @@ struct ext2_inode *ino_table;
 unsigned char block_bitmap[128];
 unsigned char inode_bitmap[32];
 struct path_lnk* p;
-char* new_dir;
+char* new_dir,new_name;
 char dir_flag;
 
 /*
@@ -152,7 +152,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                         dir_flag = 'd';
                         struct path_lnk* new_p = malloc(sizeof(struct path_lnk));
                         memset(new_p->name,'\0',256);
-                        strcpy(new_p->name,new_dir);
+                        strcpy(new_p->name,new_name);
                         new_p->next = NULL;
                         p->next = new_p;
                     }
@@ -440,6 +440,9 @@ int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path)
          }
          printf("finished memory copying with total %d bytes, file size is %d bytes\n",total_read,fsize);
          //update parent directory
+         if (dir_flag == 'd')
+             update_dir_entry(parent_inode,inode,new_name,EXT2_FT_REG_FILE);
+         else
              update_dir_entry(parent_inode,inode,new_dir,EXT2_FT_REG_FILE);
          fclose(file);
          return 0;
