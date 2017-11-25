@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
         fprintf(stderr,"%s: Source needs to be a regular file.\n",source_path);
         exit(ENOENT);
     }
-    char * new_path = chk_source_path(source_path, target_path);   
+    //char * new_path = chk_source_path(source_path, target_path);   
     //mapping memory onto disk and construct reference data structures
     int fd = open(argv[1], O_RDWR);
     disk = mmap(NULL, DISK_BLOCK * EXT2_BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
