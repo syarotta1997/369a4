@@ -108,24 +108,13 @@ void set_bitmap(unsigned char* ptr, int index,char type){
         *(b+i) = *(b+i) & ~(1 << j);
 }
 
-int chk_source_path(char*new, char* source_path, char* target_path){
+int pad_path(char* source_path, char* target_path){
     char * f_name = strrchr(source_path,'/');
-    strcpy(new,target_path);
 
-    if (strrchr(new,'/') - new == strlen(new) - 1){
         if (f_name == NULL)
-            strcat(new,source_path);
+            strcat(target_path,source_path);
         else
-            strcat(new,f_name+1);
-    }
-    else{
-        if (f_name == NULL){
-            strcat(new,"/");
-            strcat(new,source_path);
-        }
-        else
-            strcat(new,f_name);
-    }
+            strcat(target_path,f_name+1);
     return 0;
 }
 

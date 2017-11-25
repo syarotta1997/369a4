@@ -58,14 +58,11 @@ int main(int argc, char **argv) {
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
     printf("\n");
     
-    char new_path[255];
-    chk_source_path(new_path, source_path,target_path);
-    
-    char * f_name = strrchr(source_path,'/') + 1;
+    char * f_name = strrchr(source_path,'/');
     if (f_name == NULL)
          f_name = source_path;
     if ((strlen(target_path) - 1) == 0)
-        strcat(target_path,f_name);
+        pad_path(source_path,target_path);
         
     construct_path_linkedlst(target_path);
     int root_block,result;
