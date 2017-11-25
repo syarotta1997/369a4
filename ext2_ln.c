@@ -81,6 +81,8 @@ int main(int argc, char **argv) {
          char * link_name = strrchr(source_path,'/');
          if (link_name == NULL)
              link_name = source_path;
+         else
+             link_name += 1;
         if (symflag)
             sym_link(result, link_path, link_name);
         else
