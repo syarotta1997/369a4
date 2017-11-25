@@ -137,7 +137,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                 else if (strcmp(type,"ln_s")==0){
                     return cur->inode;
                 }
-                else if (strcmp(strcmp(type,"rm" == 0))){
+                else if (strcmp(type,"rm" == 0)){
                     
                     new_name = p->name;
                     printf("rm - file name:%s\n",p->name);
