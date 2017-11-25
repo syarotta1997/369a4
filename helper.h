@@ -31,6 +31,7 @@ extern unsigned char block_bitmap[128];
 extern unsigned char inode_bitmap[32];
 extern struct path_lnk* p;
 extern char* new_dir;
+extern char dir_flag;
 //function declarations
 void construct_path_linkedlst(char* path);
 void construct_bitmap(size_t const size, void const * const ptr, char type);
