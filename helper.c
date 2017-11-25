@@ -141,7 +141,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                     
                     new_name = p->name;
                     printf("rm - file name:%s\n",p->name);
-                    return p_inode;
+                    return dir;
                 }
             }
             // recursively dive deeper for directories until we reach end of path
@@ -541,5 +541,8 @@ int sym_link(unsigned short parent_inode, char* path){
 
 int remove_file(unsigned short parent_inode, char* f_name){
     printf("will perform remove on file:%s\n\n",f_name);
+    
+    
+    
     return 0;
 }
