@@ -21,9 +21,9 @@ char* new_dir;
 char* new_name;
 char dir_flag;
 
-/*
- * Utility functions
- */
+//
+//            UTILITY FUNCTIONS
+//
 /* 
  * A helper function that takes an absolute path as an argument and construct
  * a linked list with each node containing the name of a component between 2 slashes
@@ -109,24 +109,20 @@ void set_bitmap(unsigned char* ptr, int index,char type){
         *(b+i) = *(b+i) & ~(1 << j);
 }
 
-int pad_path(char* source_path, char* target_path){
-    return 0;
-}
-
 int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path_lnk* p, char* type){
     struct ext2_dir_entry * new;
     struct ext2_dir_entry * cur = dir;
-    
-    
+    struct path_lnk* new_p;
+   
     int count = (int)cur->rec_len; 
     int size = ino_table[cur->inode - 1].i_size;
       
-    printf("layer %d,%d,%s\n",count,size,p->name);
+    printf("============== layer %d,%d,%s\n",count,size,p->name);
     while ( count <= size ){
         char name[cur->name_len+1];
         memset(name, '\0', cur->name_len+1);
         strncpy(name, cur->name, cur->name_len);
-        printf("%s,%d\n",name,count);
+        printf(" -- current at %s, count is %d\n",name,count);
         //only cares if we can find a match in the file names
         if (strcmp(name,p->name) == 0){
             
@@ -141,9 +137,16 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                 else if (strcmp(type,"ln_s")==0){
                     return cur->inode;
                 }
+                else if (strcmp(strcmp(type,"rm" == 0))){
+                    
+                    new_name = p->name;
+                    printf("rm - file name:%s\n",p->name);
+                    return p_inode;
+                }
             }
             // recursively dive deeper for directories until we reach end of path
             else if (cur->file_type == EXT2_FT_DIR){
+                //check first to see it it's the end of path and handles cases based on function type
                 if (p->next == NULL){
                     if (strcmp(type,"mkdir") == 0){
                         printf("%s: Already exists\n", name);
@@ -151,18 +154,18 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                     }
                     else if (strcmp(type,"cp") == 0 || strcmp(type,"ln_l") == 0){
                         dir_flag = 'd';
-                        struct path_lnk* new_p = malloc(sizeof(struct path_lnk));
+                        new_p = malloc(sizeof(struct path_lnk));
                         memset(new_p->name,'\0',256);
                         strcpy(new_p->name,new_name);
                         new_p->next = NULL;
                         p->next = new_p;
                     }
-                    else if (strcmp(type,"ln_s") == 0){
-                        printf("ln: hard link refering to a dir\n");
+                    else if (strcmp(type,"ln_s") == 0 || strcmp(type,"rm")){
+                        printf("Directories are not valid inputs for this function\n");
                         return -EISDIR;
                     }
                 }
-                //iterate all 15 pointers in i_block array and recursively search for path
+                //deep iteration search: iterate all direct blocks and recursively search for path
                 for (int index = 0; index < 13; index++){
                     int block_num = ino_table[cur->inode-1].i_block[index];
                     if ( block_num != 0 ){
@@ -172,29 +175,31 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                 }
             }   
         }
+        //prevents seg fault at count == size
         if (count == size)
             break;
         cur = (struct ext2_dir_entry *)((char *)cur + (cur->rec_len));
         count += (int)cur->rec_len;
     }
     //===finished traversing current layer of directory block and does not find target===============
-    // if any component in path (excluding last file) is not found, return error
+    // Case 1 : Something wrong happened in the middle of given path
     if (p->next != NULL){
         printf("%s: not found\n",p->name);
         return -ENOENT;
     }
-    //if p.next is null, meaning we reached end of path where no target dir / file is found
+    //Case 2: Reached end of path where no target dir / file is found
     else{
         // in mkdir / cp case, has reached end of path and ensured validity to mkdir, return parent's inode
-        if ( strcmp(type,"mkdir")==0 || strcmp(type,"cp")==0 || strcmp(type,"ln_l")==0){
+        if ( strcmp(type,"mkdir") == 0 || strcmp(type,"cp") == 0 || strcmp(type,"ln_l") == 0){
             printf("%s need to be maked under parent inode %d \n", p->name, p_inode);
             return p_inode;
         }
-        else if (strcmp(type,"ln_s")==0){
+        else if (strcmp(type,"ln_s") == 0 || strcmp(type,"rm" == 0)){
             printf("%s source file does not exist %d \n", p->name, p_inode);
             return -ENOENT;
         }
     }
+    //technically shouldn't reach here as all type cases are handled above
     return -EINVAL;
 }
 
@@ -325,6 +330,9 @@ void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, 
     }
 }
 
+//
+// MAIN METHOD FUNCTIONS
+//
 int make_dir(unsigned short inum){
     struct ext2_dir_entry * dir;
     int count,inode_index,block_num;
@@ -529,3 +537,5 @@ int sym_link(unsigned short parent_inode, char* path){
         
     return 0;
 }
+
+int remove(unsigned short parent_inode, )
