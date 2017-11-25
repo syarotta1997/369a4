@@ -220,12 +220,11 @@ int allocate_block(){
 }
 
 void free_blocks(int inode){
-    int blocks[15] = (ino_table+inode-1)->i_block;
-    if (blocks[12] != 0){
-        struct single_indirect_block* sib = (struct single_indirect_block*)(disk + (1024* blocks[12]) );
+    if ((ino_table+inode-1)->i_block[12] != 0){
+        struct single_indirect_block* sib = (struct single_indirect_block*)(disk + (1024* (ino_table+inode-1)->i_block[12]) );
         memset(sib->blocks,0,256);
     }
-    memset(blocks, 0, 15);
+    memset((ino_table+inode-1)->i_block, 0, 15);
 }
 
 int allocate_inode(){
