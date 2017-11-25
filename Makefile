@@ -1,4 +1,4 @@
-all : ext2_mkdir ext2_cp ext2_ln ext2_rm ext2_restore ext2_checker
+all : ext2_mkdir ext2_cp ext2_ln ext2_rm
 
 ext2_mkdir : ext2_mkdir.o helper.o 
 	gcc -Wall -g -o ext2_mkdir ext2_mkdir.o helper.o
@@ -22,4 +22,4 @@ ext2_rm : ext2_rm.o helper.o
 	gcc -c -Wall -g -o $@ $<
 	
 clean:
-	rm -f *.o ext2_mkdir ext2_cp ext2_ln ext2_mkdir ext2_cp ext2_ln ext2_rm ext2_restore ext2_checker
+	rm -f *.o ext2_mkdir ext2_cp ext2_ln ext2_mkdir ext2_cp ext2_ln ext2_rm
