@@ -223,13 +223,19 @@ void free_blocks(int inode){
     if ((ino_table+inode-1)->i_block[12] != 0){
         struct single_indirect_block* sib = (struct single_indirect_block*)(disk + (1024* (ino_table+inode-1)->i_block[12]) );
         for (int i = 0 ; i < 256; i ++){
-            if (sib->blocks[i] != 0)
+            if (sib->blocks[i] != 0){
                 set_bitmap(block_bitmap,sib->blocks[i] - 1,'0');
+                sb->s_free_blocks_count++;
+                gd->bg_free_blocks_count ++;
+            }
+            
         }
     }
     for (int i = 0 ; i < 12 ; i ++){
         if ((ino_table+inode-1)->i_block[i] != 0){
             set_bitmap(block_bitmap,(ino_table+inode-1)->i_block[i] - 1,'0');
+            sb->s_free_blocks_count++;
+            gd->bg_free_blocks_count ++;
         }
     }
 }
@@ -570,12 +576,16 @@ int remove_file(unsigned short parent_inode, char* f_name){
             {
             if ( strcmp(dir->name,f_name) == 0){
                 set_bitmap(inode_bitmap, dir->inode - 1, '0');
+                sb->s_free_inodes_count++;
+                gd->bg_free_inodes_count++;
                 (ino_table + dir->inode - 1)->i_dtime = (int)time(NULL);
                 free_blocks(dir->inode);
                 dir->inode = 0;
                 // the only entry in the block
                 if (dir->rec_len == 1024){
                     set_bitmap(block_bitmap, block - 1,'0');
+                    sb->s_free_inodes_count++;
+                    gd->bg_free_inodes_count++;
                     (ino_table+parent_inode-1)->i_size-= 1024;
                 }
                 printf("first entry rmed\n");
@@ -586,6 +596,8 @@ int remove_file(unsigned short parent_inode, char* f_name){
              next = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
              if (strcmp(next->name,f_name) == 0){
                  set_bitmap(inode_bitmap, next->inode - 1, '0');
+                 sb->s_free_inodes_count++;
+                 gd->bg_free_inodes_count++;
                  dir->rec_len += next->rec_len;
                  (ino_table + next->inode - 1)->i_dtime = (int)time(NULL);
                  free_blocks(next->inode);
