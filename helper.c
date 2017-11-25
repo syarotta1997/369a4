@@ -220,7 +220,7 @@ int allocate_block(){
 }
 
 void free_blocks(unsigned short inode){
-    int blocks[] = (ino_table+inode-1)->i_block;
+    int* blocks; = (ino_table+inode-1)->i_block;
     if (blocks[12] != 0){
         struct single_indirect_block* sib = (struct single_indirect_block*)(disk + (1024* blocks[12]) );
         memset(sib->blocks,0,256);
