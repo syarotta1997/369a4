@@ -455,7 +455,7 @@ int hard_link(unsigned short source_inode,unsigned short parent_inode){
         update_dir_entry(parent_inode,source_inode,new_name,EXT2_FT_SYMLINK);
     else
         update_dir_entry(parent_inode,source_inode,new_dir,EXT2_FT_SYMLINK);
-    (ino_table+parent_inode-1)->i_links_count++;
+    (ino_table+source_inode-1)->i_links_count++;
     
     return 0;
 }
