@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
     
     if (! symflag){
         construct_path_linkedlst(source_path);
-        result = ftree_visit(dir, 2, p, "ln_s");
+        result = ftree_visit(dir, 2, p->next, "ln_s");
         destroy_list();
         if (result < 0){
             return -result;
@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
             source_inode = result;
     }
     construct_path_linkedlst(link_path);
-    result = ftree_visit(dir, 2, p, "ln_l");
+    result = ftree_visit(dir, 2, p->next, "ln_l");
     if (result < 0)
         return -result;
     else{
