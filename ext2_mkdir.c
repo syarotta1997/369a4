@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
     if (result < 0)
         return -result;
     else{
-        mkdir(result);
+        make_dir(result);
     }
     printf("=================================================================\n");
         for (int i = 0; i < 32 ; i++){
