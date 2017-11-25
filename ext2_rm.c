@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
     //mapping memory onto disk and construct reference data structures
     {
     int fd = open(argv[1], O_RDWR);
-    disk = mmap(NULL, DISK_BLOCK * EXT2_BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    disk = mmap(NULL, 128 * 1024, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if(disk == MAP_FAILED) {
         perror("mmap");
         return ENOENT;
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     gd = (struct ext2_group_desc *)(disk + (1024*2) );
     if (gd->bg_free_blocks_count ==0 || gd->bg_free_inodes_count == 0)
         return ENOSPC;
-    construct_bitmap(DISK_BLOCK, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
+    construct_bitmap(128, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
     construct_bitmap(sb->s_inodes_count, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));}
     //parse path component and perform file system walk to check valid status
@@ -61,9 +61,7 @@ int main(int argc, char **argv) {
     else{
         remove_file(result, new_name);
     }
-    
-    
-    printf("=================================================================\n");
+    {printf("=================================================================\n");
         for (int i = 0; i < 32 ; i++){
         if ( (i == 1 || i > 10) && inode_bitmap[i] & 1){
             char type;
@@ -111,18 +109,8 @@ int main(int argc, char **argv) {
                 }
         }
     
-}
-    
-    
-    
-    
-    
-    
-    
+    }}
         puts("");
-    
-    
-    
     destroy_list();
     return 0;
 }
