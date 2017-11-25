@@ -222,9 +222,16 @@ int allocate_block(){
 void free_blocks(int inode){
     if ((ino_table+inode-1)->i_block[12] != 0){
         struct single_indirect_block* sib = (struct single_indirect_block*)(disk + (1024* (ino_table+inode-1)->i_block[12]) );
-        memset(sib->blocks,0,256);
+        for (int i = 0 ; i < 256; i ++){
+            if (sib->blocks[i] != 0)
+                set_bitmap(block_bitmap,sib->blocks[i] - 1,'0');
+        }
     }
-    memset((ino_table+inode-1)->i_block, 0, 15);
+    for (int i = 0 ; i < 12 ; i ++){
+        if ((ino_table+inode-1)->i_block[i] != 0){
+            set_bitmap(block_bitmap,(ino_table+inode-1)->i_block[i] - 1,'0');
+        }
+    }
 }
 
 int allocate_inode(){
