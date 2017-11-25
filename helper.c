@@ -145,6 +145,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
             else if (cur->file_type == EXT2_FT_DIR){
                 if (p->next == NULL){
                     if (strcmp(type,"mkdir") == 0){
+                        printf("%s: Already exists\n", name);
                         return -EEXIST;
                     }
                     else if (strcmp(type,"cp") == 0 || strcmp(type,"ln_l") == 0){
@@ -152,7 +153,6 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                         struct path_lnk* new_p = malloc(sizeof(struct path_lnk));
                         memset(new_p->name,'\0',256);
                         strcpy(new_p->name,new_dir);
-                        printf("newnew%s\n",new_p->name);
                         new_p->next = NULL;
                         p->next = new_p;
                     }
@@ -368,7 +368,7 @@ int make_dir(unsigned short inum){
     return 0;
 }
 
-int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path,char* f_name){
+int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path){
          int fsize = (int)stats->st_size;
          int total_blocks,inode;
          if (fsize % 1024 != 0)
@@ -440,9 +440,6 @@ int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path,
          }
          printf("finished memory copying with total %d bytes, file size is %d bytes\n",total_read,fsize);
          //update parent directory
-         if (dir_flag == 'd')
-             update_dir_entry(parent_inode,inode,f_name,EXT2_FT_REG_FILE);
-         else
              update_dir_entry(parent_inode,inode,new_dir,EXT2_FT_REG_FILE);
          fclose(file);
          return 0;

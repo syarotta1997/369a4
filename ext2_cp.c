@@ -72,7 +72,8 @@ int main(int argc, char **argv) {
     
     printf("new_dir:%s\n",new_dir);
     construct_path_linkedlst(target_path);
-    new_dir = f_name;
+    if (dir_flag = 'd')
+        new_dir = f_name;
     int root_block,result;
     root_block = ino_table[1].i_block[0];
     struct ext2_dir_entry *dir = (struct ext2_dir_entry *)(disk + (1024* root_block));
@@ -80,12 +81,9 @@ int main(int argc, char **argv) {
     if (result < 0)
         return -result;
     else{
-        copy_file(&stats, result,source_path,f_name);
+        copy_file(&stats, result,source_path);
     }
-    
-    
-    
-    
+  
     printf("=================================================================\n");
         for (int i = 0; i < 32 ; i++){
         if ( (i == 1 || i > 10) && inode_bitmap[i] & 1){
