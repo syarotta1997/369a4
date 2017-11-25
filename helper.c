@@ -462,7 +462,7 @@ int hard_link(unsigned short source_inode){
     return 0;
 }
 
-int sym_link(char* path){
+int sym_link(unsigned short parent_inode, char* path){
     printf("Starting sym link process\n");
     return 0;
 }
