@@ -151,7 +151,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                 if (p->next != NULL)
                     return -ENOENT;
                 if ( strcmp(type,"mkdir")==0 || strcmp(type,"cp")==0 || strcmp(type,"ln_l")==0){
-                    fprintf(stderr,"%s: Already exists\n", name);
+                    printf("%s: Already exists\n", name);
                     return -EEXIST;
                 }
                 else if (strcmp(type,"ln_s")==0){
