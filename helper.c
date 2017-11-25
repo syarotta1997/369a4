@@ -17,7 +17,8 @@ struct ext2_inode *ino_table;
 unsigned char block_bitmap[128];
 unsigned char inode_bitmap[32];
 struct path_lnk* p;
-char* new_dir,new_name;
+char* new_dir;
+char* new_name;
 char dir_flag;
 
 /*

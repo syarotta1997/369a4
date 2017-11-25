@@ -18,7 +18,8 @@ extern struct ext2_inode *ino_table;
 extern unsigned char block_bitmap[128];
 extern unsigned char inode_bitmap[32];
 extern struct path_lnk* p;
-extern char* new_dir,new_name;
+extern char* new_dir;
+extern char* new_name;
 extern char dir_flag;
 
 int main(int argc, char **argv) {
