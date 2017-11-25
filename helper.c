@@ -142,8 +142,8 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     struct ext2_dir_entry * new;
     struct ext2_dir_entry * cur = dir;
     
-    if (p_inode == 2 && p->name == NULL )
-        return p_inode;
+    if (strcmp(p->name,"/")==0)
+        p = p->next;
     
     int count = (int)cur->rec_len; 
     int size = ino_table[cur->inode - 1].i_size;
