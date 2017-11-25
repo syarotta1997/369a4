@@ -186,7 +186,6 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
         // in mkdir / cp case, has reached end of path and ensured validity to mkdir, return parent's inode
         if ( strcmp(type,"mkdir")==0 || strcmp(type,"cp")==0 || strcmp(type,"ln_l")==0){
             printf("%s need to be maked under parent inode %d \n", p->name, p_inode);
-            new_dir = p->name;
             return p_inode;
         }
         else if (strcmp(type,"ln_s")==0){
