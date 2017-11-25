@@ -63,12 +63,13 @@ int main(int argc, char **argv) {
     char * f_name = strrchr(source_path,'/');
     if (f_name == NULL)
          f_name = source_path;
+    
     if ( strrchr(target_path,'/') == (target_path + strlen(target_path) - 1)){
         dir_flag = 'd';
-        new_dir = f_name;
         strcat(target_path,f_name);
         printf("new target:%s\n",target_path);
     }   
+    new_dir = f_name;
     construct_path_linkedlst(target_path);
     int root_block,result;
     root_block = ino_table[1].i_block[0];
