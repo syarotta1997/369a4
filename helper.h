@@ -45,5 +45,5 @@ int make_dir(unsigned short inum, char* name);
 int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path);
 void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, unsigned char type);
 int hard_link(unsigned short source_inode);
-int sym_link(char* path);
+int sym_link(unsigned short parent_inode, char* path);
 #endif // __HEALPER_H

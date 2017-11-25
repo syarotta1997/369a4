@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
     
-    construct_path_linkedlst(new_path);
+    construct_path_linkedlst(target_path);
     
     sb = (struct ext2_super_block *)(disk + 1024);
     gd = (struct ext2_group_desc *)(disk + (1024*2));

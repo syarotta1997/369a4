@@ -150,12 +150,17 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
             
             // reached end of path with an existing file, for both mkdir and cp case return EEXIST
             if (cur->file_type == EXT2_FT_REG_FILE ){
-                if ( strcmp(type,"mkdir")==0 || strcmp(type,"mkdir")==0){
-                    fprintf(stderr,"%s: Already existing as a regular file\n", name);
+                if (p->next != NULL)
+                    return -ENOENT;
+                
+                if ( strcmp(type,"mkdir")==0 || strcmp(type,"cp")==0 || strcmp(type,"ln_l")==0){
+                    fprintf(stderr,"%s: Already exists\n", name);
                     return -EEXIST;
                 }
+                else if (strcmp(type,"ln_s")==0){
+                    return cur->inode;
+                }
             }
-            
             // recursively dive deeper for directories until we reach end of path
             else if (cur->file_type == EXT2_FT_DIR){
             
@@ -164,8 +169,9 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                 if (p->next == NULL){
                     if (strcmp(type,"mkdir") == 0)
                         return -EEXIST;
-                    else if (strcmp(type,"cp") == 0)
+                    else if (strcmp(type,"cp") == 0){
                         return cur->inode;
+                    }
                 }
                 //iterate all 15 pointers in i_block array and recursively search for path
                 for (int index = 0; index < 13; index++){
@@ -191,8 +197,15 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     //if p.next is null, meaning we reached end of path where no target dir / file is found
     else{
         // in mkdir / cp case, has reached end of path and ensured validity to mkdir, return parent's inode
+        if ( strcmp(type,"mkdir")==0 || strcmp(type,"cp")==0 || strcmp(type,"ln_l")==0){
             printf("%s need to be maked under parent inode %d \n", p->name, p_inode);
+            new_dir = p->name;
             return p_inode;
+        }
+        else if (strcmp(type,"ln_s")==0){
+            printf("%s source file does not exist %d \n", p->name, p_inode);
+            return -ENOENT;
+        }
     }
 }
 
