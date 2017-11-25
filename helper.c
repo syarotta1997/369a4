@@ -138,8 +138,6 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     int size = ino_table[cur->inode - 1].i_size;
       
     printf("%d,%d,%s\n",count,size,p->name);
-
-    
     while ( count <= size ){
         char name[cur->name_len+1];
         memset(name, '\0', cur->name_len+1);
@@ -152,7 +150,6 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
             if (cur->file_type == EXT2_FT_REG_FILE ){
                 if (p->next != NULL)
                     return -ENOENT;
-                
                 if ( strcmp(type,"mkdir")==0 || strcmp(type,"cp")==0 || strcmp(type,"ln_l")==0){
                     fprintf(stderr,"%s: Already exists\n", name);
                     return -EEXIST;
@@ -163,14 +160,16 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
             }
             // recursively dive deeper for directories until we reach end of path
             else if (cur->file_type == EXT2_FT_DIR){
-            
-            //the component file name in disk image matches given component in path
-            
                 if (p->next == NULL){
-                    if (strcmp(type,"mkdir") == 0)
+                    if (strcmp(type,"mkdir") == 0){
                         return -EEXIST;
+                    }
                     else if (strcmp(type,"cp") == 0){
                         return cur->inode;
+                    }
+                    else if (strcmp(type,"ln_s" == 0)){
+                        printf("ln: hard link refering to a dir\n");
+                        return -EISDIR;
                     }
                 }
                 //iterate all 15 pointers in i_block array and recursively search for path
