@@ -141,7 +141,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                     
                     new_name = p->name;
                     printf("rm - file name:%s\n",p->name);
-                    return dir;
+                    return (int)dir;
                 }
             }
             // recursively dive deeper for directories until we reach end of path
