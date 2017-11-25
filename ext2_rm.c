@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
     if (result < 0)
         return -result;
     else{
-       // perform remove on inode
+        remove(result, new_name);
     }
     
     

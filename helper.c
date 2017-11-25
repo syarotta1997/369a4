@@ -538,4 +538,6 @@ int sym_link(unsigned short parent_inode, char* path){
     return 0;
 }
 
-int remove(unsigned short parent_inode, )
+int remove(unsigned short parent_inode, char* f_name){
+    printf("will perform remove on file:%s\n\n",f_name);
+}
