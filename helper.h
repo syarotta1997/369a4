@@ -42,7 +42,7 @@ void destroy_list();
 int chk_source_path(char* new,char* source_path, char* target_path);
 void init_inode(unsigned short inode_index, unsigned short size,char type );
 int make_dir(unsigned short inum, char* name);
-int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path);
+int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path,char* f_name);
 void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, unsigned char type);
 int hard_link(unsigned short source_inode,unsigned short parent_inode,char* link_name);
 int sym_link(unsigned short parent_inode, char* path,char* link_name);

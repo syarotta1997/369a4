@@ -60,7 +60,14 @@ int main(int argc, char **argv) {
     
     char new_path[255];
     chk_source_path(new_path, source_path,target_path);
-    construct_path_linkedlst(new_path);
+    
+    char * f_name = strrchr(source_path,'/') + 1;
+    if (f_name == NULL)
+         f_name = source_path;
+    if ((strlen(target_path) - 1) == 0)
+        strcat(target_path,f_name);
+        
+    construct_path_linkedlst(target_path);
     int root_block,result;
     root_block = ino_table[1].i_block[0];
     struct ext2_dir_entry *dir = (struct ext2_dir_entry *)(disk + (1024* root_block));
@@ -68,7 +75,7 @@ int main(int argc, char **argv) {
     if (result < 0)
         return -result;
     else{
-        copy_file(&stats, result,source_path);
+        copy_file(&stats, result,source_path,f_name);
     }
     printf("=================================================================\n");
         for (int i = 0; i < 32 ; i++){

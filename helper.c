@@ -381,7 +381,7 @@ int make_dir(unsigned short inum, char* name){
     return 0;
 }
 
-int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path){
+int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path,char* f_name){
          int fsize = (int)stats->st_size;
          int total_blocks,inode;
          if (fsize % 1024 != 0)
@@ -453,9 +453,6 @@ int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path)
          }
          printf("finished memory copying with total %d bytes, file size is %d bytes\n",total_read,fsize);
          //update parent directory
-         char * f_name = strrchr(source_path,'/');
-         if (f_name == NULL)
-             f_name = source_path;
          if (dir_flag == 'd')
              update_dir_entry(parent_inode,inode,f_name,EXT2_FT_REG_FILE);
          else
