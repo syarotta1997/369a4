@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
     if (result < 0)
         return -result;
     else{
-        remove(result, new_name);
+        remove_file(result, new_name);
     }
     
     
