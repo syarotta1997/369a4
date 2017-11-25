@@ -132,10 +132,10 @@ int chk_source_path(char* source_path, char* target_path){
     struct ext2_dir_entry *dir = (struct ext2_dir_entry *)(disk + (1024* root_block));
     int check = ftree_visit(dir, 2, p->next, "cp");
     destroy_list();
-    if (! check == -EEXIT)
+    if (! check == -EEXIST)
         return 0;
     else
-        return EEXIT;
+        return EEXIST;
 }
 
 int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path_lnk* p, char* type){
