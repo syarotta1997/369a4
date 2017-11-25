@@ -38,7 +38,7 @@ void construct_bitmap(size_t const size, void const * const ptr, char type);
 void set_bitmap(unsigned char* ptr, int index,char type);
 int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path_lnk* p, char* type);
 int allocate_block();
-void free_blocks(unsigned short inode);
+void free_blocks(int inode);
 int allocate_inode();
 void destroy_list();
 void init_inode(unsigned short inode_index, unsigned short size,char type );

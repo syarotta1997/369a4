@@ -219,7 +219,7 @@ int allocate_block(){
         return -ENOSPC;
 }
 
-void free_blocks(unsigned short inode){
+void free_blocks(int inode){
     int* blocks = (ino_table+inode-1)->i_block;
     if (blocks[12] != 0){
         struct single_indirect_block* sib = (struct single_indirect_block*)(disk + (1024* blocks[12]) );
@@ -586,7 +586,7 @@ int remove_file(unsigned short parent_inode, char* f_name){
                  printf("entry rmed\n");
                  return 0;
              }
-             if (! dir->rec_len == 1024){
+             if (! (dir->rec_len == 1024)){
                 dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
                 count += (int)dir->rec_len;
              }
