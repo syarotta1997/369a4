@@ -108,9 +108,10 @@ void set_bitmap(unsigned char* ptr, int index,char type){
         *(b+i) = *(b+i) & ~(1 << j);
 }
 
-char * chk_source_path(char* source_path, char* target_path){
+int chk_source_path(char* source_path, char* target_path){
     char * f_name = strrchr(source_path,'/');
-    char * new = target_path;
+    char new[255];
+    strcpy(new,target_path);
 
     if (strrchr(new,'/') - new == strlen(new) - 1){
         if (f_name == NULL)
@@ -126,9 +127,10 @@ char * chk_source_path(char* source_path, char* target_path){
         else
             strcat(new,f_name);
     }
-        
-    printf("target:%s\n",new);
-    return new;
+    construct_path_linkedlst(new);
+    int root_block = ino_table[1].i_block[0];
+    struct ext2_dir_entry *dir = (struct ext2_dir_entry *)(disk + (1024* root_block));
+    return result = ftree_visit(dir, 2, p->next, "cp");
 }
 
 int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path_lnk* p, char* type){

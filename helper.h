@@ -39,7 +39,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
 int allocate_block();
 int allocate_inode();
 void destroy_list();
-char * chk_source_path(char* source_path, char* target_path);
+int chk_source_path(char* source_path, char* target_path);
 void init_inode(unsigned short inode_index, unsigned short size,char type );
 int make_dir(unsigned short inum, char* name);
 int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path);

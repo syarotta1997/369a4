@@ -49,9 +49,6 @@ int main(int argc, char **argv) {
         perror("mmap");
         exit(1);
     }
-    
-    construct_path_linkedlst(target_path);
-    
     sb = (struct ext2_super_block *)(disk + 1024);
     gd = (struct ext2_group_desc *)(disk + (1024*2));
     if (gd->bg_free_blocks_count ==0 || gd->bg_free_inodes_count == 0)
@@ -60,8 +57,12 @@ int main(int argc, char **argv) {
     construct_bitmap(sb->s_inodes_count, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
     printf("\n");
+    int result = chk_source_path(source_path, target_path);
+    if (result < 0)
+        return -result;
+    destroy_list();
+    construct_path_linkedlst(target_path);
     
-    int result;
 
     for (int i_idx = 0; i_idx < 15; i_idx++){
         int block_num = ino_table[1].i_block[i_idx];
