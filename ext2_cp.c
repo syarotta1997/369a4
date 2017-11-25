@@ -19,6 +19,7 @@ extern unsigned char block_bitmap[128];
 extern unsigned char inode_bitmap[32];
 extern struct path_lnk* p;
 extern char* new_dir;
+extern char dir_flag;
 
 int main(int argc, char **argv) {
     //argument validity checks
@@ -59,7 +60,7 @@ int main(int argc, char **argv) {
     printf("\n");
     
     //handles ending slash
-    if (strrchr(path,"/") - path == strlen(path) - 1){
+    if (strrchr(target_path,"/") - target_path == strlen(target_path) - 1){
         dir_flag = 'd';
         pad_path(source_path,target_path);
     }
