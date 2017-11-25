@@ -117,12 +117,12 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     int count = (int)cur->rec_len; 
     int size = ino_table[cur->inode - 1].i_size;
       
-    printf("============== layer %d,%d,%s\n\n",count,size,dir->name);
+    printf("============== layer [ %s ],%d,%d\n\n",dir->name,count,size);
     while ( count <= size ){
         char name[cur->name_len+1];
         memset(name, '\0', cur->name_len+1);
         strncpy(name, cur->name, cur->name_len);
-        printf(" %s -- current at %s, count is %d\n",p->name,name,count);
+        printf(" %s -- current at %s, count is %d\n",dir->name,name,count);
         //only cares if we can find a match in the file names
         if (strcmp(name,p->name) == 0){
             
