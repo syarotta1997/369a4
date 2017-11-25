@@ -77,9 +77,9 @@ int main(int argc, char **argv) {
             source_inode = result;
     }
     //handles ending slash for link_path
-    char * f_name = strrchr(link_path,'/');
+    char * f_name = strrchr(source_path,'/');
     if (f_name == NULL)
-         f_name = link_path;
+         f_name = source_path;
     else
         f_name = f_name + 1;
     if ( strrchr(link_path,'/') == (link_path + strlen(link_path) - 1)){
