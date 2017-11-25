@@ -138,7 +138,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     int count = (int)cur->rec_len; 
     int size = ino_table[cur->inode - 1].i_size;
       
-    printf("%d,%d,%s\n",count,size,p->name);
+    printf("layer %d,%d,%s\n",count,size,p->name);
     while ( count <= size ){
         char name[cur->name_len+1];
         memset(name, '\0', cur->name_len+1);
@@ -148,7 +148,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
         if (strcmp(name,p->name) == 0){
             
             // reached end of path with an existing file, for both mkdir and cp case return EEXIST
-            if (cur->file_type == EXT2_FT_REG_FILE ){
+            if (cur->file_type == EXT2_FT_REG_FILE || cur->file_type == EXT2_FT_SYMLINK){
                 if (p->next != NULL)
                     return -ENOENT;
                 if ( strcmp(type,"mkdir")==0 || strcmp(type,"cp")==0 || strcmp(type,"ln_l")==0){
