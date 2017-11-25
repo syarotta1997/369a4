@@ -167,7 +167,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                     else if (strcmp(type,"cp") == 0){
                         return cur->inode;
                     }
-                    else if (strcmp(type,"ln_s" == 0)){
+                    else if (strcmp(type,"ln_s") == 0){
                         printf("ln: hard link refering to a dir\n");
                         return -EISDIR;
                     }
@@ -206,6 +206,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
             return -ENOENT;
         }
     }
+    return -EINVAL;
 }
 
 int allocate_block(){
