@@ -7,6 +7,7 @@
 #include <sys/mman.h>
 #include <string.h>
 #include <errno.h>
+#include <time.h>
 #include "ext2.h"
 #include "helper.h"
 
@@ -141,7 +142,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                     
                     new_name = p->name;
                     printf("rm - file name:%s\n",p->name);
-                    return (int)dir;
+                    return p_inode;
                 }
             }
             // recursively dive deeper for directories until we reach end of path
@@ -216,6 +217,15 @@ int allocate_block(){
         }
         printf("oops,all blocks seems to be occupied\n");
         return -ENOSPC;
+}
+
+void free_blocks(unsigned short inode){
+    int blocks[] = (ino_table+inode-1)->i_block;
+    if (blocks[12] != 0){
+        struct single_indirect_block* sib = (struct single_indirect_block*)(disk + (1024* blocks[12]) );
+        memset(sib->blocks,0,256);
+    }
+    memset(blocks, 0, 15);
 }
 
 int allocate_inode(){
@@ -299,8 +309,8 @@ void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, 
                         dir->inode = inode_num;
                         dir->name_len = strlen(name);
                         strncpy(dir->name,name,dir->name_len);
-                        
                         dir->rec_len = 1024;       
+                        (ino_table+inum-1)->i_size += 1024;
                     }
                     //there is space in this dir_block, add the new directory to it
                     else{
@@ -541,8 +551,46 @@ int sym_link(unsigned short parent_inode, char* path){
 
 int remove_file(unsigned short parent_inode, char* f_name){
     printf("will perform remove on file:%s\n\n",f_name);
-    
-    
-    
-    return 0;
+    int block,count;
+    struct ext2_dir_entry *dir;
+    struct ext2_dir_entry *next;
+    for (int i = 0; i < 12; i++){
+        block = ino_table[parent_inode - 1].i_block[i];
+        dir = (struct ext2_dir_entry *)(disk + (1024* block));
+        count = dir->rec_len;
+                
+        while (count < 1024){
+            //handles case where deleting first entry in dir_entry
+            {
+            if ( strcmp(dir->name,f_name) == 0){
+                set_bitmap(inode_bitmap, dir->inode - 1, '0');
+                (ino_table + dir->inode - 1)->i_dtime = (int)time(NULL);
+                free_blocks(dir->inode);
+                dir->inode = 0;
+                // the only entry in the block
+                if (dir->rec_len == 1024){
+                    set_bitmap(block_bitmap, block - 1,'0');
+                    (ino_table+parent_inode-1)->i_size-= 1024;
+                }
+                printf("first entry rmed\n");
+                return 0;
+            }
+            }
+            //checks the next entry and update reclen if found match
+             next = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
+             if (strcmp(next->name,f_name) == 0){
+                 set_bitmap(inode_bitmap, next->inode - 1, '0');
+                 dir->rec_len += next->rec_len;
+                 (ino_table + next->inode - 1)->i_dtime = (int)time(NULL);
+                 free_blocks(next->inode);
+                 printf("entry rmed\n");
+                 return 0;
+             }
+             if (! dir->rec_len == 1024){
+                dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
+                count += (int)dir->rec_len;
+             }
+        }
+    }
+    return -EINVAL;
 }
