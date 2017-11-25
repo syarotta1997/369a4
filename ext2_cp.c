@@ -58,14 +58,13 @@ int main(int argc, char **argv) {
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
     printf("\n");
     
-    if (chk_source_path(source_path,target_path) == -EEXIST)
-        return EEXIST;
-    printf("passed\n");
-    construct_path_linkedlst(target_path);
+    char new_path[255];
+    chk_source_path(new_path, source_path,target_path);
+    construct_path_linkedlst(new_path);
     int root_block,result;
     root_block = ino_table[1].i_block[0];
     struct ext2_dir_entry *dir = (struct ext2_dir_entry *)(disk + (1024* root_block));
-    result = ftree_visit(dir, 2, p, "cp");
+    result = ftree_visit(dir, 2, p->next, "cp");
     if (result < 0)
         return -result;
     else{
