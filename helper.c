@@ -251,6 +251,10 @@ void init_inode(unsigned short inode_index, unsigned short size,char type ){
             node->i_links_count = 1;
             node->i_mode = EXT2_S_IFREG;
         }
+        else if (type == 'l'){
+            node->i_links_count = 1;
+            node->i_mode = EXT2_S_IFLNK;
+        }
         printf("done initializing inode\n");
 }
 
@@ -462,5 +466,66 @@ int hard_link(unsigned short source_inode,unsigned short parent_inode){
 
 int sym_link(unsigned short parent_inode, char* path){
     printf("Starting sym link process\n");
+    int num_blocks;
+    int path_len = strlen(path) + 1;
+    if (path_len%1024 != 0)
+        num_blocks = path_len/4 + 1;
+    else
+        num_blocks = path_len/4;
+    int blocks[num_blocks];
+    //Preallocate blocks and inode for copying file
+        int i_index = allocate_inode();
+        inode = i_index + 1;
+        //Filling in all needed info of newly allocated inode
+        init_inode(i_index, path_len, 'l');
+        struct ext2_inode* node = ino_table + i_index;
+        //Allocate all blocks needed and store block number into predefined bookmark array
+        int allocated = 0;
+        while (allocated < num_blocks){
+            int block_num = allocate_block(i_index);
+            //assigns block number to direct data blocks
+            if (allocated < 12){
+                node->i_block[allocated] = block_num;        
+            }
+            //needs to allocate single indirect block and assigns to it
+            else{
+                struct single_indirect_block* sib;
+                if (allocated == 12){
+                    node->i_block[allocated] = block_num;
+                    sib = (struct single_indirect_block*)(disk + (1024* (block_num)) );
+                    sib->blocks[0] = block_num;
+                }
+                else{
+                    int index = allocated % 12;
+                    sib->blocks[index] = block_num;
+                }
+                printf("block allocating with single indirect done\n");
+            }
+            blocks[allocated] = block_num;
+            allocated++;
+        }
+        printf("done allocating all blocks needed to copy file:\n");
+        for (int i = 0 ; i < num_blocks ; i ++){
+            printf("[%d] ",blocks[i]);
+        }
+        char byte;
+        int bytes_read = 0;
+        int block_count = 0;
+        while (bytes_read <= path_len){
+            byte = path[bytes_read];
+            memcpy( (char*)disk + (1024*blocks[block_count] + bytes_read), byte, 1);
+            bytes_read++;
+            if(bytes_read%1024 == 0)
+                block_count++;
+        }
+        
+        puts("");
+                 printf("finished memory copying with total %d bytes, file size is %d bytes\n",total_read,fsize);
+         //update parent directory
+        if (dir_flag == 'd')
+            update_dir_entry(parent_inode,source_inode,new_name,EXT2_FT_SYMLINK);
+        else
+            update_dir_entry(parent_inode,source_inode,new_dir,EXT2_FT_SYMLINK);
+        
     return 0;
 }
