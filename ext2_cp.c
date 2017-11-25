@@ -70,6 +70,7 @@ int main(int argc, char **argv) {
         printf("new target:%s\n",target_path);
     }   
     new_dir = f_name;
+    printf("new_dir:%s\n",new_dir);
     construct_path_linkedlst(target_path);
     int root_block,result;
     root_block = ino_table[1].i_block[0];
