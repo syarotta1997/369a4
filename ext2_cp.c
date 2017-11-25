@@ -66,6 +66,7 @@ int main(int argc, char **argv) {
     if ( strrchr(target_path,'/') == target_path - 1){
         dir_flag = 'd';
         strcat(target_path,f_name);
+        printf("new target:%s\n",target_path);
     }
     
     
