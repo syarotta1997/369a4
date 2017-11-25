@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
     
     printf("new_dir:%s\n",new_dir);
     construct_path_linkedlst(target_path);
-    if (dir_flag = 'd')
+    if (dir_flag == 'd')
         new_dir = f_name;
     int root_block,result;
     root_block = ino_table[1].i_block[0];
