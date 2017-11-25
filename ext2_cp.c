@@ -57,33 +57,17 @@ int main(int argc, char **argv) {
     construct_bitmap(sb->s_inodes_count, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
     printf("\n");
-    int result = chk_source_path(source_path, target_path);
+    if (chk_source_path(char* source_path, char* target_path) == EEXIT)
+        return EEXIT;
+    construct_path_linkedlst(target_path);
+    int root_block, result, source_inode;
+    root_block = ino_table[1].i_block[0];
+    struct ext2_dir_entry *dir = (struct ext2_dir_entry *)(disk + (1024* root_block));
+    result = ftree_visit(dir, 2, p->next, "cp");
     if (result < 0)
         return -result;
-    destroy_list();
-    construct_path_linkedlst(target_path);
-    
-
-    for (int i_idx = 0; i_idx < 15; i_idx++){
-        int block_num = ino_table[1].i_block[i_idx];
-        if (  block_num != 0){
-            printf("root block %d\n",block_num);
-            struct ext2_dir_entry * root = (struct ext2_dir_entry *)(disk + (1024* (block_num))) ;
-            result = ftree_visit(root, 2 ,p->next, "cp");
-        }
-    }
-    if (result == -EEXIST){
-        printf("%s : Already exists\n",target_path);
-        exit(1);
-    }
-    else if (result == -ENOENT){
-        printf("%s : Invalid path\n",target_path);
-        exit(1);
-    }
-    //no error given, return is the parent directory i_node of dir to make
     else{
-        printf("now calling copy\n");
-        copy_file(&stats, result, source_path);
+        copy_file(&stats, result,source_path);
     }
     printf("=================================================================\n");
         for (int i = 0; i < 32 ; i++){
