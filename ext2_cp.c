@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
     printf("\n");
     
     //handles ending slash
-    if ( (int)strrchr(target_path,"/") == strlen(target_path) - 1){
+    if ( (int)strrchr(target_path,'/') == strlen(target_path) - 1){
         dir_flag = 'd';
         pad_path(source_path,target_path);
     }
