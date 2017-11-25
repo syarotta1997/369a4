@@ -117,7 +117,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     int count = (int)cur->rec_len; 
     int size = ino_table[cur->inode - 1].i_size;
       
-    printf("============== layer %d,%d,%s\n",count,size,p->name);
+    printf("============== layer %d,%d,%s\n\n",count,size,p->name);
     while ( count <= size ){
         char name[cur->name_len+1];
         memset(name, '\0', cur->name_len+1);
@@ -161,6 +161,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                         p->next = new_p;
                     }
                     else if (strcmp(type,"ln_s") == 0 || strcmp(type,"rm") == 0){
+                        puts("");
                         printf("Directories are not valid inputs for this function\n");
                         return -EISDIR;
                     }
