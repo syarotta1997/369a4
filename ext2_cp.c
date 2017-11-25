@@ -64,6 +64,8 @@ int main(int argc, char **argv) {
     char * f_name = strrchr(source_path,'/');
     if (f_name == NULL)
          f_name = source_path;
+    else
+        f_name = f_name + 1;
     
     if ( strrchr(target_path,'/') == (target_path + strlen(target_path) - 1)){
         strcat(target_path,f_name);
