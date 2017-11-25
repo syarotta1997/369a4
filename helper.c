@@ -466,7 +466,7 @@ int hard_link(unsigned short source_inode,unsigned short parent_inode){
 
 int sym_link(unsigned short parent_inode, char* path){
     printf("Starting sym link process\n");
-    int num_blocks;
+    int num_blocks,inode;
     int path_len = strlen(path) + 1;
     if (path_len%1024 != 0)
         num_blocks = path_len/4 + 1;
@@ -513,19 +513,19 @@ int sym_link(unsigned short parent_inode, char* path){
         int block_count = 0;
         while (bytes_read <= path_len){
             byte = path[bytes_read];
-            memcpy( (char*)disk + (1024*blocks[block_count] + bytes_read), byte, 1);
+            memcpy( (char*)disk + (1024*blocks[block_count] + bytes_read), &byte, 1);
             bytes_read++;
             if(bytes_read%1024 == 0)
                 block_count++;
         }
         
         puts("");
-                 printf("finished memory copying with total %d bytes, file size is %d bytes\n",total_read,fsize);
+                 printf("finished memory copying with total %d bytes, file size is %d bytes\n",bytes_read,path_len);
          //update parent directory
         if (dir_flag == 'd')
-            update_dir_entry(parent_inode,source_inode,new_name,EXT2_FT_SYMLINK);
+            update_dir_entry(parent_inode,inode,new_name,EXT2_FT_SYMLINK);
         else
-            update_dir_entry(parent_inode,source_inode,new_dir,EXT2_FT_SYMLINK);
+            update_dir_entry(parent_inode,inode,new_dir,EXT2_FT_SYMLINK);
         
     return 0;
 }
