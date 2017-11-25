@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
     }
     
     char * path = (char*)argv[2];
-
+    system("clear");
     //mapping memory onto disk and construct reference data structures
     {
     int fd = open(argv[1], O_RDWR);
@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
     else{
         remove_file(result, new_name);
     }
-    system("clear");
+    
     {printf("=================================================================\n");
         for (int i = 0; i < 32 ; i++){
         if ( (i == 1 || i > 10) && inode_bitmap[i] & 1){
