@@ -7,7 +7,6 @@
 #include <sys/mman.h>
 #include <string.h>
 #include <errno.h>
-#include <cstdlib>
 #include "ext2.h"
 #include "helper.h"
 
@@ -63,7 +62,7 @@ int main(int argc, char **argv) {
     else{
         remove_file(result, new_name);
     }
-    system("cls");
+    system("clear");
     {printf("=================================================================\n");
         for (int i = 0; i < 32 ; i++){
         if ( (i == 1 || i > 10) && inode_bitmap[i] & 1){
