@@ -160,7 +160,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                         new_p->next = NULL;
                         p->next = new_p;
                     }
-                    else if (strcmp(type,"ln_s") == 0 || strcmp(type,"rm")){
+                    else if (strcmp(type,"ln_s") == 0 || strcmp(type,"rm") == 0){
                         printf("Directories are not valid inputs for this function\n");
                         return -EISDIR;
                     }
