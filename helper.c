@@ -267,8 +267,8 @@ void free_blocks(int inode){
     }
     for (int i = 0 ; i < 12 ; i ++){
         if ((ino_table+inode-1)->i_block[i] != 0){
-                set_bitmap(disk+(1024 * gd->bg_inode_bitmap),(ino_table+inode-1)->i_block[i] - 1,'0');
-                construct_bitmap(32, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
+                set_bitmap(disk+(1024 * gd->bg_block_bitmap),(ino_table+inode-1)->i_block[i] - 1,'0');
+                construct_bitmap(128, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
             sb->s_free_blocks_count++;
             gd->bg_free_blocks_count ++;
         }
