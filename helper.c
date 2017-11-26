@@ -257,7 +257,7 @@ void free_blocks(int inode){
         struct single_indirect_block* sib = (struct single_indirect_block*)(disk + (1024* (ino_table+inode-1)->i_block[12]) );
         for (int i = 0 ; i < 256; i ++){
             if (sib->blocks[i] != 0){
-                set_bitmap(disk+(1024 * gd->bg_block_bitmap),block_bitmap,sib->blocks[i] - 1,'0');
+                set_bitmap(disk+(1024 * gd->bg_block_bitmap),sib->blocks[i] - 1,'0');
                 construct_bitmap(128, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
                 sb->s_free_blocks_count++;
                 gd->bg_free_blocks_count ++;
