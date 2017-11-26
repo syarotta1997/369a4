@@ -200,7 +200,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                 }
             }   
         }
-        if ((cur->rec_len != actual_size) && (count + cur->rec_len <1024) && (strcmp(type, "restore") == 0))
+        if ((cur->rec_len != actual_size) && (count + cur->rec_len <=1024) && (strcmp(type, "restore") == 0))
             cur->rec_len = actual_size;
         //prevents seg fault at count == size
         if (count == size)
