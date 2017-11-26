@@ -129,7 +129,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
         if (actual_size % 4 != 0){
         actual_size =4*(actual_size/4) + 4;
         }
-        printf(" %s -- current at %s,      actual_size=%d      count is %d\n",dir->name,name,actual_size,count);
+        printf(" %s -- current at %s,      %d   , %d,   count %d\n",dir->name,name,actual_size,cur->rec_len,count);
         //only cares if we can find a match in the file names
         if (strcmp(name,p->name) == 0){
             
