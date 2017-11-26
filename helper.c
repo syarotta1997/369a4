@@ -11,6 +11,8 @@
 #include "ext2.h"
 #include "helper.h"
 
+
+
 unsigned char *disk;
 struct ext2_super_block *sb;
 struct ext2_group_desc *gd;
@@ -123,6 +125,10 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
         char name[cur->name_len+1];
         memset(name, '\0', cur->name_len+1);
         strncpy(name, cur->name, cur->name_len);
+        int actual_size = sizeof(struct ext2_dir_entry) + cur->name_len;
+        if (actual_size % 4 != 0){
+        actual_size =4*(actual_size/4) + 4;
+        }
         printf(" %s -- current at %s,                          count is %d\n",dir->name,name,count);
         //only cares if we can find a match in the file names
         if (strcmp(name,p->name) == 0){
@@ -139,10 +145,27 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                     return cur->inode;
                 }
                 else if (strcmp(type,"rm") == 0){
-                    
                     new_name = p->name;
                     printf("rm - file name:%s\n",p->name);
                     return p_inode;
+                }
+                else if (strcmp(type,"restore") == 0){
+                    if (inode_bitmap[cur->inode - 1] == 0){
+                        int status = check_blocks(cur->inode);
+                        if (status == IN_USE){
+                            printf("restore found file, but blocks were overwritten\n");
+                            return -ENOENT;
+                        }
+                        else{
+                            printf("restore : %s\n",p->name);
+                            new_name = p->name;
+                            return p_inode;
+                        }
+                    }
+                    else{
+                        printf("inode to restore has been overwritten\n");
+                        return -ENOENT;
+                    }
                 }
             }
             // recursively dive deeper for directories until we reach end of path
@@ -161,7 +184,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                         new_p->next = NULL;
                         p->next = new_p;
                     }
-                    else if (strcmp(type,"ln_s") == 0 || strcmp(type,"rm") == 0){
+                    else if (strcmp(type,"ln_s") == 0 || strcmp(type,"rm") == 0 || strcmp(type,"restore") == 0){
                         puts("");
                         printf("Directories are not valid inputs for this function\n");
                         return -EISDIR;
@@ -177,6 +200,8 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                 }
             }   
         }
+        if ((cur->rec_len != actual_size) && (count + cur->rec_len <1024) && (strcmp(type, "restore") == 0))
+            cur->rec_len = actual_size;
         //prevents seg fault at count == size
         if (count == size)
             break;
@@ -196,7 +221,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
             printf("%s need to be maked under parent inode %d \n", p->name, p_inode);
             return p_inode;
         }
-        else if (strcmp(type,"ln_s") == 0 || strcmp(type,"rm") == 0){
+        else if (strcmp(type,"ln_s") == 0 || strcmp(type,"rm") == 0 || strcmp(type,"restore") == 0){
             printf("%s source file does not exist %d \n", p->name, p_inode);
             return -ENOENT;
         }
@@ -238,6 +263,22 @@ void free_blocks(int inode){
             gd->bg_free_blocks_count ++;
         }
     }
+}
+
+int check_blocks(int inode){
+    if ((ino_table+inode-1)->i_block[12] != 0){
+        struct single_indirect_block* sib = (struct single_indirect_block*)(disk + (1024* (ino_table+inode-1)->i_block[12]) );
+        for (int i = 0 ; i < 256; i ++){
+            if (sib->blocks[i] != 0 && block_bitmap[sib->blocks[i] - 1] == 1)
+                    return IN_USE;
+        }
+    }
+    for (int i = 0 ; i < 12 ; i ++){
+        int block = (ino_table+inode-1)->i_block[i];
+        if ( block != 0 && block_bitmap[block - 1] == 1)
+            return IN_USE;
+    }
+    return FREE;
 }
 
 int allocate_inode(){
@@ -575,6 +616,9 @@ int remove_file(unsigned short parent_inode, char* f_name){
             //handles case where deleting first entry in dir_entry
             {
             if ( strcmp(dir->name,f_name) == 0){
+                //handles hard link case
+                 //decrease link count by 1,  if reaches 0 after decrement, free inode and block
+                // if count == 0, continue, else return
                 set_bitmap(inode_bitmap, dir->inode - 1, '0');
                 sb->s_free_inodes_count++;
                 gd->bg_free_inodes_count++;
@@ -595,6 +639,9 @@ int remove_file(unsigned short parent_inode, char* f_name){
             //checks the next entry and update reclen if found match
              next = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
              if (strcmp(next->name,f_name) == 0){
+                 //handles hard link case
+                 //decrease link count by 1,  if reaches 0 after decrement, free inode and block
+                 // if count == 0, continue, else return
                  set_bitmap(inode_bitmap, next->inode - 1, '0');
                  sb->s_free_inodes_count++;
                  gd->bg_free_inodes_count++;

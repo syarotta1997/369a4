@@ -12,6 +12,9 @@
 #include <errno.h>
 #include "ext2.h"
 
+#define FREE 0
+#define IN_USE 1
+
 //Self defined helper functions and structs
 struct path_lnk{
     char name[255];
@@ -32,16 +35,18 @@ extern unsigned char inode_bitmap[32];
 extern struct path_lnk* p;
 extern char* new_dir;
 extern char dir_flag;
-//function declarations
+//function declarations for util functions
 void construct_path_linkedlst(char* path);
 void construct_bitmap(size_t const size, void const * const ptr, char type);
 void set_bitmap(unsigned char* ptr, int index,char type);
 int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path_lnk* p, char* type);
 int allocate_block();
 void free_blocks(int inode);
+int check_blocks(int inode);
 int allocate_inode();
 void destroy_list();
 void init_inode(unsigned short inode_index, unsigned short size,char type );
+//function declarations for main functions
 int make_dir(unsigned short inum);
 int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path);
 void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, unsigned char type);
