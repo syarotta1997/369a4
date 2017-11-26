@@ -109,7 +109,7 @@ void set_bitmap(unsigned char* ptr, int index,char type){
     if (type == '1')
         *(b + i) = *(b+i) | (1 << j );
     else if(type == '0')
-        *(b+i) = *(b+i) & ~(1 << j);
+        *(b+i) = *(b+i) ^ (1 << j);
 }
 
 int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path_lnk* p, char* type){
