@@ -168,7 +168,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                          for(int i = 0 ; i < 32 ; i ++){
                          printf("%d",inode_bitmap[i]);
                          if (i % 8 == 0)
-                             printf(" ")
+                             printf(" ");
                  }
                  puts("");
                         return -ENOENT;
@@ -657,7 +657,7 @@ int remove_file(unsigned short parent_inode, char* f_name){
                  for(int i = 0 ; i < 32 ; i ++){
                      printf("%d",inode_bitmap[i]);
                      if (i % 8 == 0)
-                         printf(" ")
+                         printf(" ");
                  }
                  puts("");
                  sb->s_free_inodes_count++;
