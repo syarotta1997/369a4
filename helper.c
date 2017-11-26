@@ -166,7 +166,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                     else{
                         printf("%d : inode to restore has been overwritten\n",inode_bitmap[cur->inode - 1]);
                              for(int i = 0 ; i < 32 ; i ++){
-                                 printf("%u",inode_bitmap[i]);
+                                 printf("%u",inode_bitmap[i]);}
                              puts("");
                         return -ENOENT;
                     }
