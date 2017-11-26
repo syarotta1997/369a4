@@ -209,8 +209,9 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
         if (count == size)
             break;
         cur = (struct ext2_dir_entry *)((char *)cur + offset);
-        offset = cur->rec_len;
         count += offset;
+        offset = cur->rec_len;
+        
     }
     //===finished traversing current layer of directory block and does not find target===============
     // Case 1 : Something wrong happened in the middle of given path
