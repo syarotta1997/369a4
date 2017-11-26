@@ -257,7 +257,8 @@ void free_blocks(int inode){
         struct single_indirect_block* sib = (struct single_indirect_block*)(disk + (1024* (ino_table+inode-1)->i_block[12]) );
         for (int i = 0 ; i < 256; i ++){
             if (sib->blocks[i] != 0){
-                set_bitmap(block_bitmap,sib->blocks[i] - 1,'0');
+                set_bitmap(disk+(1024 * gd->bg_block_bitmap),block_bitmap,sib->blocks[i] - 1,'0');
+                construct_bitmap(128, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
                 sb->s_free_blocks_count++;
                 gd->bg_free_blocks_count ++;
             }
@@ -266,7 +267,8 @@ void free_blocks(int inode){
     }
     for (int i = 0 ; i < 12 ; i ++){
         if ((ino_table+inode-1)->i_block[i] != 0){
-            set_bitmap(block_bitmap,(ino_table+inode-1)->i_block[i] - 1,'0');
+                set_bitmap(disk+(1024 * gd->bg_inode_bitmap),(ino_table+inode-1)->i_block[i] - 1,'0');
+                construct_bitmap(32, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
             sb->s_free_blocks_count++;
             gd->bg_free_blocks_count ++;
         }
@@ -627,7 +629,8 @@ int remove_file(unsigned short parent_inode, char* f_name){
                 //handles hard link case
                  //decrease link count by 1,  if reaches 0 after decrement, free inode and block
                 // if count == 0, continue, else return
-                set_bitmap(inode_bitmap, dir->inode - 1, '0');
+                set_bitmap(disk+(1024 * gd->bg_inode_bitmap),dir->inode - 1,'0');
+                construct_bitmap(32, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
                 sb->s_free_inodes_count++;
                 gd->bg_free_inodes_count++;
                 (ino_table + dir->inode - 1)->i_dtime = (int)time(NULL);
@@ -635,7 +638,8 @@ int remove_file(unsigned short parent_inode, char* f_name){
                 dir->inode = 0;
                 // the only entry in the block
                 if (dir->rec_len == 1024){
-                    set_bitmap(block_bitmap, block - 1,'0');
+                    set_bitmap(disk+(1024 * gd->bg_block_bitmap),block - 1,'0');
+                    construct_bitmap(128, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
                     sb->s_free_inodes_count++;
                     gd->bg_free_inodes_count++;
                     (ino_table+parent_inode-1)->i_size-= 1024;
@@ -650,7 +654,8 @@ int remove_file(unsigned short parent_inode, char* f_name){
                  //handles hard link case
                  //decrease link count by 1,  if reaches 0 after decrement, free inode and block
                  // if count == 0, continue, else return
-                 set_bitmap(inode_bitmap, next->inode - 1, '0');
+                 set_bitmap(disk+(1024 * gd->bg_inode_bitmap),next->inode - 1,'0');
+                 construct_bitmap(32, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
                  for(int i = 0 ; i < 32 ; i ++){
                      printf("%u",inode_bitmap[i]);
                  }
