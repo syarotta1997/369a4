@@ -54,4 +54,5 @@ void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, 
 int hard_link(unsigned short source_inode,unsigned short parent_inode);
 int sym_link(unsigned short parent_inode, char* path);
 int remove_file(unsigned short parent_inode, char* f_name);
+int restore_file(unsigned short parent_inode, char* f_name);
 #endif // __HEALPER_H
