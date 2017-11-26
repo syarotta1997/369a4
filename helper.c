@@ -151,7 +151,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                     return p_inode;
                 }
                 else if (strcmp(type,"restore") == 0){
-                    if ( strcmp(inode_bitmap[cur->inode - 1], '0') == 0){
+                    if (inode_bitmap[cur->inode - 1] == 0){
                         int status = check_blocks(cur->inode);
                         if (status == IN_USE){
                             printf("restore found file, but blocks were overwritten\n");
@@ -276,16 +276,16 @@ void free_blocks(int inode){
 }
 
 int check_blocks(int inode){
-    if (strcmp((ino_table+inode-1)->i_block[12],'0') != 0){
+    if ((ino_table+inode-1)->i_block[12] != 0){
         struct single_indirect_block* sib = (struct single_indirect_block*)(disk + (1024* (ino_table+inode-1)->i_block[12]) );
         for (int i = 0 ; i < 256; i ++){
-            if (sib->blocks[i] != 0 && strcmp(block_bitmap[sib->blocks[i] - 1],'1') == 0 )
+            if (sib->blocks[i] != 0 && block_bitmap[sib->blocks[i] - 1] == 1)
                     return IN_USE;
         }
     }
     for (int i = 0 ; i < 12 ; i ++){
         int block = (ino_table+inode-1)->i_block[i];
-        if ( block != 0 && strcmp(block_bitmap[block - 1], '1') == 0)
+        if ( block != 0 && block_bitmap[block - 1] == 1)
             return IN_USE;
     }
     return FREE;
