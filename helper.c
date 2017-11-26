@@ -648,6 +648,7 @@ int remove_file(unsigned short parent_inode, char* f_name){
                  //decrease link count by 1,  if reaches 0 after decrement, free inode and block
                  // if count == 0, continue, else return
                  set_bitmap(inode_bitmap, next->inode - 1, '0');
+                 printf("unset %d, %d\n", next->inode, inode_bitmap[next->inode]);
                  sb->s_free_inodes_count++;
                  gd->bg_free_inodes_count++;
                  dir->rec_len += next->rec_len;
