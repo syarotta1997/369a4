@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
     if (result < 0)
         return -result;
     else{
-        printf("will restore: %s\n",new_name);
+        restore_file(result, new_name);
     }
     
     {printf("=================================================================\n");

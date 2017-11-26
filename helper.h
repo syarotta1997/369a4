@@ -42,6 +42,7 @@ void set_bitmap(unsigned char* ptr, int index,char type);
 int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path_lnk* p, char* type);
 int allocate_block();
 void free_blocks(int inode);
+void reallocate_blocks(int inode);
 int check_blocks(int inode);
 int allocate_inode();
 void destroy_list();
