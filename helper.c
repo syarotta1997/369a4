@@ -151,7 +151,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                     return p_inode;
                 }
                 else if (strcmp(type,"restore") == 0){
-                    if (inode_bitmap[cur->inode - 1] == 0){
+                    if (inode_bitmap[cur->inode - 1] == '0'){
                         int status = check_blocks(cur->inode);
                         if (status == IN_USE){
                             printf("restore found file, but blocks were overwritten\n");
@@ -164,7 +164,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                         }
                     }
                     else{
-                        printf("inode to restore has been overwritten\n");
+                        printf("%d : inode to restore has been overwritten\n",inode_bitmap[cur->inode - 1]);
                         return -ENOENT;
                     }
                 }
