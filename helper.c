@@ -119,6 +119,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
    
     int count = (int)cur->rec_len; 
     int size = ino_table[cur->inode - 1].i_size;
+    int offset = cur->rec_len;
       
     printf("============== layer [ %s ],inode : %d,size : %d\n\n",dir->name,count,size);
     while ( count <= size ){
@@ -200,15 +201,16 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                 }
             }   
         }
-        if ((cur->rec_len != actual_size) && (count + cur->rec_len <=1024) && (strcmp(type, "restore") == 0)){
-            printf("found possible entry\n");
-            cur->rec_len = actual_size;
+        if ((cur->rec_len != actual_size) && (strcmp(type, "restore") == 0)){
+            printf("found possible gap\n");
+            offset = actual_size;
         }
         //prevents seg fault at count == size
         if (count == size)
             break;
-        cur = (struct ext2_dir_entry *)((char *)cur + (cur->rec_len));
-        count += (int)cur->rec_len;
+        cur = (struct ext2_dir_entry *)((char *)cur + offset);
+        offset = cur->rec_len;
+        count += offset;
     }
     //===finished traversing current layer of directory block and does not find target===============
     // Case 1 : Something wrong happened in the middle of given path
