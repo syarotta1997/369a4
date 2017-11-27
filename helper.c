@@ -170,7 +170,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                         }
                     }
                     else{
-                        printf("%d : inode to restore has been overwritten\n",inode_bitmap[cur->inode - 1]);
+                        printf("%d : inode in use\n",inode_bitmap[cur->inode - 1]);
                         return -ENOENT;
                     }
                 }
@@ -200,6 +200,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                 //deep iteration search: iterate all direct blocks and recursively search for path
                 for (int index = 0; index < 13; index++){
                     int block_num = ino_table[cur->inode-1].i_block[index];
+                    printf("block_num:%d \n",block_num);
                     if ( block_num != 0 ){
                         new = (struct ext2_dir_entry *)(disk + (1024* block_num));
                         int result =  ftree_visit(new, cur->inode,p->next,type);
