@@ -791,8 +791,6 @@ int restore_file(unsigned short parent_inode, char* f_name){
                     gap_count += actual_size;
             }
             
-            if (count + dir->rec_len == 1024)
-                break;
             dir = (struct ext2_dir_entry *)((char *)dir + dir->rec_len);
             count += dir->rec_len;
         }
