@@ -482,7 +482,6 @@ int make_dir(unsigned short inum){
     printf("DONE init new dir entry\n");
 
     // Updating parent directory entry (note will make this another helper function)
-    ino_table[inum-1].i_links_count++;
     gd->bg_used_dirs_count+=1;
     update_dir_entry(inum, inode_index + 1, new_dir, EXT2_FT_DIR);
     return 0;
