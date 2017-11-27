@@ -694,7 +694,7 @@ int remove_file(unsigned short parent_inode, char* f_name){
                      free_blocks(next->inode);
                  }
                  else
-                     (ino_table + dir->inode - 1)->i_links_count --;
+                     (ino_table + next->inode - 1)->i_links_count --;
                                  // the only entry in the block
                  dir->rec_len += next->rec_len;
                  if (dir->rec_len == 1024){
