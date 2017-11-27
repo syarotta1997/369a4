@@ -655,9 +655,12 @@ int remove_file(unsigned short parent_inode, char* f_name){
         count = dir->rec_len;
                 
         while (count < 1024){
+            char name[cur->name_len+1];
+            memset(name, '\0', cur->name_len+1);
+            strncpy(name, cur->name, cur->name_len);
             //handles case where deleting first entry in dir_entry
             {
-            if ( strcmp(dir->name,f_name) == 0){
+            if ( strcmp(name,f_name) == 0){
                 if ((ino_table + dir->inode - 1)->i_links_count == 1){
                     set_bitmap(disk+(1024 * gd->bg_inode_bitmap),dir->inode - 1,'0');
                     construct_bitmap(32, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
@@ -683,6 +686,8 @@ int remove_file(unsigned short parent_inode, char* f_name){
             }
             //checks the next entry and update reclen if found match
              next = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
+             memset(name, '\0', next->name_len+1);
+             strncpy(name, next->name, next->name_len);
              if (strcmp(next->name,f_name) == 0){
                  if ((ino_table + next->inode - 1)->i_links_count == 1){
                      set_bitmap(disk+(1024 * gd->bg_inode_bitmap),next->inode - 1,'0');
