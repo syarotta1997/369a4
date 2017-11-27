@@ -201,7 +201,6 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                 int result;
                 for (int index = 0; index < 13; index++){
                     int block_num = ino_table[cur->inode-1].i_block[index];
-                    printf("block_num:%d \n",block_num);
                     if ( block_num != 0 ){
                         new = (struct ext2_dir_entry *)(disk + (1024* block_num));
                         result =  ftree_visit(new, cur->inode,p->next,type);
