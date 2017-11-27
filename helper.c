@@ -171,9 +171,6 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                     }
                     else{
                         printf("%d : inode to restore has been overwritten\n",inode_bitmap[cur->inode - 1]);
-                             for(int i = 0 ; i < 32 ; i ++){
-                                 printf("%u",inode_bitmap[i]);}
-                             puts("");
                         return -ENOENT;
                     }
                 }
@@ -686,7 +683,7 @@ int remove_file(unsigned short parent_inode, char* f_name){
             //checks the next entry and update reclen if found match
              next = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
              if (strcmp(next->name,f_name) == 0){
-                 if ((ino_table + dir->inode - 1)->i_links_count == 1){
+                 if ((ino_table + next->inode - 1)->i_links_count == 1){
                      set_bitmap(disk+(1024 * gd->bg_inode_bitmap),next->inode - 1,'0');
                      construct_bitmap(32, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
                      sb->s_free_inodes_count++;
