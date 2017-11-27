@@ -741,58 +741,60 @@ int restore_file(unsigned short parent_inode, char* f_name){
     struct ext2_dir_entry* cur;
     for (int i = 0; i < 12; i++){
         block = ino_table[parent_inode - 1].i_block[i];
-        dir = (struct ext2_dir_entry *)(disk + (1024* block));
-        cur = dir;
-        offset = dir->rec_len;
-        count = dir->rec_len;
-        while (count < 1024){
-            printf("cur->%s  dir->%s\n",cur->name,dir->name);
-            int actual_size = sizeof(struct ext2_dir_entry) + dir->name_len;
-            if (actual_size % 4 != 0){
-                actual_size =4*(actual_size/4) + 4;
+        if (block != 0){
+            dir = (struct ext2_dir_entry *)(disk + (1024* block));
+            cur = dir;
+            offset = dir->rec_len;
+            count = dir->rec_len;
+            while (count < 1024){
+                printf("cur->%s  dir->%s\n",cur->name,dir->name);
+                int actual_size = sizeof(struct ext2_dir_entry) + dir->name_len;
+                if (actual_size % 4 != 0){
+                    actual_size =4*(actual_size/4) + 4;
+                }
+                cur = (struct ext2_dir_entry *)((char *)dir + actual_size);
+                gap_count = 0;
+                int diff = dir->rec_len;
+
+                while ( gap_count < diff ){
+
+                        char name[cur->name_len+1];
+                        memset(name, '\0', cur->name_len+1);
+                        strncpy(name, cur->name, cur->name_len);
+                        printf("%s\n",cur->name);
+                        if (strcmp(name,f_name) == 0){
+                             if (block_bitmap[block-1] == 0){
+                                set_bitmap(disk+(1024 * gd->bg_block_bitmap),block - 1,'1');
+                                construct_bitmap(128, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
+                                sb->s_free_blocks_count--;
+                                gd->bg_free_blocks_count--;
+                                (ino_table+parent_inode-1)->i_size+= 1024;
+                                (ino_table+parent_inode-1)->i_blocks += 2 ;
+                             }
+                             //hard links will not be handled as stated in assignment handout
+                             set_bitmap(disk+(1024 * gd->bg_inode_bitmap),cur->inode - 1,'1');
+                             construct_bitmap(32, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
+                             sb->s_free_inodes_count--;
+                             gd->bg_free_inodes_count--;
+                             dir->rec_len = gap_count;
+                             cur->rec_len = diff - gap_count;
+                             (ino_table + cur->inode - 1)->i_dtime = 0;
+                             reallocate_blocks(cur->inode);
+                             printf("entry restored\n");
+                             return 0;
+                 }
+
+                        actual_size = sizeof(struct ext2_dir_entry) + cur->name_len;
+                        if (actual_size % 4 != 0){
+                            actual_size =4*(actual_size/4) + 4;
+                        }
+                        cur = (struct ext2_dir_entry *)((char *)cur + actual_size);
+                        gap_count += actual_size;
+                }
+
+                dir = (struct ext2_dir_entry *)((char *)dir + dir->rec_len);
+                count += dir->rec_len;
             }
-            cur = (struct ext2_dir_entry *)((char *)dir + actual_size);
-            gap_count = 0;
-            int diff = dir->rec_len;
-            
-            while ( gap_count < diff ){
-                    
-                    char name[cur->name_len+1];
-                    memset(name, '\0', cur->name_len+1);
-                    strncpy(name, cur->name, cur->name_len);
-                    printf("%s\n",cur->name);
-                    if (strcmp(name,f_name) == 0){
-                         if (block_bitmap[block-1] == 0){
-                            set_bitmap(disk+(1024 * gd->bg_block_bitmap),block - 1,'1');
-                            construct_bitmap(128, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
-                            sb->s_free_blocks_count--;
-                            gd->bg_free_blocks_count--;
-                            (ino_table+parent_inode-1)->i_size+= 1024;
-                            (ino_table+parent_inode-1)->i_blocks += 2 ;
-                         }
-                         //hard links will not be handled as stated in assignment handout
-                         set_bitmap(disk+(1024 * gd->bg_inode_bitmap),cur->inode - 1,'1');
-                         construct_bitmap(32, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
-                         sb->s_free_inodes_count--;
-                         gd->bg_free_inodes_count--;
-                         dir->rec_len = gap_count;
-                         cur->rec_len = diff - gap_count;
-                         (ino_table + cur->inode - 1)->i_dtime = 0;
-                         reallocate_blocks(cur->inode);
-                         printf("entry restored\n");
-                         return 0;
-             }
-                    
-                    actual_size = sizeof(struct ext2_dir_entry) + cur->name_len;
-                    if (actual_size % 4 != 0){
-                        actual_size =4*(actual_size/4) + 4;
-                    }
-                    cur = (struct ext2_dir_entry *)((char *)cur + actual_size);
-                    gap_count += actual_size;
-            }
-            
-            dir = (struct ext2_dir_entry *)((char *)dir + dir->rec_len);
-            count += dir->rec_len;
         }
     }
     return -EINVAL;
