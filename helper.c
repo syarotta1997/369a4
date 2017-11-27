@@ -780,7 +780,7 @@ int restore_file(unsigned short parent_inode, char* f_name){
                  return 0;
              }
              if (dir->rec_len != actual_size)
-                offerset = actual_size
+                offset = actual_size;
             dir = (struct ext2_dir_entry *)((char *)dir +offset);
             count += offset;
             offset = dir->rec_len;
