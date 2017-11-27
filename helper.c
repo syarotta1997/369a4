@@ -797,7 +797,7 @@ int restore_file(unsigned short parent_inode, char* f_name){
              
              count += offset;
              offset = dir->rec_len;
-            
+            printf("cur->%s  dir->%s\n",cur->name,dir->name);
              
         }
     }
