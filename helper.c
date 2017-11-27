@@ -343,7 +343,7 @@ void init_inode(unsigned short inode_index, unsigned short size,char type ){
             node->i_blocks = size/512 + 1;
         else
             node->i_blocks = size/512;
-        memset(node->i_block, 0 , 15);
+        memset(node->i_block, 0 , 15*sizeof(int));
         node->i_file_acl = 0;
         node->i_dir_acl = 0;
         node->i_faddr = 0;
