@@ -757,11 +757,11 @@ int restore_file(unsigned short parent_inode, char* f_name){
             int diff = dir->rec_len;
             
             while ( gap_count < diff ){
-                
+                    
                     char name[cur->name_len+1];
                     memset(name, '\0', cur->name_len+1);
                     strncpy(name, cur->name, cur->name_len);
-                    
+                    printf("%s\n",cur->name);
                     if (strcmp(name,f_name) == 0){
                          if (block_bitmap[block-1] == 0){
                             set_bitmap(disk+(1024 * gd->bg_block_bitmap),block - 1,'1');
@@ -785,6 +785,9 @@ int restore_file(unsigned short parent_inode, char* f_name){
              }
                     
                     actual_size = sizeof(struct ext2_dir_entry) + cur->name_len;
+                    if (actual_size % 4 != 0){
+                        actual_size =4*(actual_size/4) + 4;
+                    }
                     cur = (struct ext2_dir_entry *)((char *)cur + actual_size);
                     gap_count += actual_size;
             }
