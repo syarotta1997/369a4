@@ -688,7 +688,7 @@ int remove_file(unsigned short parent_inode, char* f_name){
              next = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
              memset(name, '\0', next->name_len+1);
              strncpy(name, next->name, next->name_len);
-             if (strcmp(next->name,f_name) == 0){
+             if (strcmp(name,f_name) == 0){
                  if ((ino_table + next->inode - 1)->i_links_count == 1){
                      set_bitmap(disk+(1024 * gd->bg_inode_bitmap),next->inode - 1,'0');
                      construct_bitmap(32, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
@@ -743,12 +743,16 @@ int restore_file(unsigned short parent_inode, char* f_name){
         count = offset;
         
         while (count < 1024){
+            
             //if first entry is removed, ftree_visit will never be able to find it, thus it is non-recoverable
             //checks the next entry and update reclen if found match
              if (dir->rec_len != actual_size){
                 offset = actual_size;
             }
              next = (struct ext2_dir_entry *)((char *)dir + offset);
+             char name[next->name_len+1];
+             memset(name, '\0', next->name_len+1);
+             strncpy(name, dir->name, next->name_len+1);
              //if we are restoring a file in a freed block,reallocate it
              // block usage is already checked in free_visit, so it is guaranteed to be free
              if (strcmp(next->name,f_name) == 0){
