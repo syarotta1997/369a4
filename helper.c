@@ -755,7 +755,7 @@ int restore_file(unsigned short parent_inode, char* f_name){
              strncpy(name, dir->name, next->name_len+1);
              //if we are restoring a file in a freed block,reallocate it
              // block usage is already checked in free_visit, so it is guaranteed to be free
-             if (strcmp(next->name,f_name) == 0){
+             if (strcmp(name,f_name) == 0){
                  if (block_bitmap[block-1] == 0){
                     set_bitmap(disk+(1024 * gd->bg_block_bitmap),block - 1,'1');
                     construct_bitmap(128, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
