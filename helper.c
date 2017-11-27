@@ -746,7 +746,7 @@ int restore_file(unsigned short parent_inode, char* f_name){
             cur = dir;
             offset = dir->rec_len;
             count = dir->rec_len;
-            while (count < 1024){
+            while (count <= 1024){
                 printf("cur->%s  dir->%s\n",cur->name,dir->name);
                 int actual_size = sizeof(struct ext2_dir_entry) + dir->name_len;
                 if (actual_size % 4 != 0){
@@ -791,6 +791,8 @@ int restore_file(unsigned short parent_inode, char* f_name){
                         cur = (struct ext2_dir_entry *)((char *)cur + actual_size);
                         gap_count += actual_size;
                 }
+                if (count == 1024)
+                    break;
 
                 dir = (struct ext2_dir_entry *)((char *)dir + dir->rec_len);
                 count += dir->rec_len;
