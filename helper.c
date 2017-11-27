@@ -686,6 +686,7 @@ int remove_file(unsigned short parent_inode, char* f_name){
             }
             //checks the next entry and update reclen if found match
              next = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
+             char name[next->name_len+1];
              memset(name, '\0', next->name_len+1);
              strncpy(name, next->name, next->name_len);
              if (strcmp(name,f_name) == 0){
