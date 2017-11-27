@@ -737,15 +737,15 @@ int restore_file(unsigned short parent_inode, char* f_name){
     for (int i = 0; i < 12; i++){
         block = ino_table[parent_inode - 1].i_block[i];
         dir = (struct ext2_dir_entry *)(disk + (1024* block));
-        int actual_size = sizeof(struct ext2_dir_entry) + dir->name_len;
-        if (actual_size % 4 != 0){
-            actual_size =4*(actual_size/4) + 4;
-        }
+        
         offset = dir->rec_len;
         count = offset;
         
         while (count < 1024){
-            
+            int actual_size = sizeof(struct ext2_dir_entry) + dir->name_len;
+            if (actual_size % 4 != 0){
+                actual_size =4*(actual_size/4) + 4;
+            }
             //if first entry is removed, ftree_visit will never be able to find it, thus it is non-recoverable
             //checks the next entry and update reclen if found match
              if (dir->rec_len != actual_size){
@@ -779,10 +779,11 @@ int restore_file(unsigned short parent_inode, char* f_name){
                  printf("entry restored\n");
                  return 0;
              }
-
-                dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
-                count += offset;
-                offset = dir->rec_len;
+             if (dir->rec_len != actual_size)
+                offerset = actual_size
+            dir = (struct ext2_dir_entry *)((char *)dir +offset);
+            count += offset;
+            offset = dir->rec_len;
              
         }
     }
