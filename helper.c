@@ -655,9 +655,9 @@ int remove_file(unsigned short parent_inode, char* f_name){
         count = dir->rec_len;
                 
         while (count < 1024){
-            char name[cur->name_len+1];
-            memset(name, '\0', cur->name_len+1);
-            strncpy(name, cur->name, cur->name_len);
+            char name[dir->name_len+1];
+            memset(name, '\0', dir->name_len+1);
+            strncpy(name, dir->name, dir->name_len);
             //handles case where deleting first entry in dir_entry
             {
             if ( strcmp(name,f_name) == 0){
