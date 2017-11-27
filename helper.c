@@ -73,7 +73,9 @@ void construct_path_linkedlst(char* path){
     }
     puts("");
 }
-
+/*
+ * 
+ */
 void destroy_list(){
     struct path_lnk* cur = p;
     while (cur != NULL){
@@ -116,6 +118,10 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     struct ext2_dir_entry * new;
     struct ext2_dir_entry * cur = dir;
     struct path_lnk* new_p;
+    
+    if (cur->inode){
+        cur = (struct ext2_dir_entry *)((char *)cur + cur->rec_len);
+    }
    
     int count = (int)cur->rec_len; 
     int size = ino_table[cur->inode - 1].i_size;
@@ -199,7 +205,9 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                     int block_num = ino_table[cur->inode-1].i_block[index];
                     if ( block_num != 0 ){
                         new = (struct ext2_dir_entry *)(disk + (1024* block_num));
-                        return ftree_visit(new, cur->inode,p->next,type);
+                        int result =  ftree_visit(new, cur->inode,p->next,type);
+                        if (result > 0 )
+                            return result;
                     }
                 }
             }   
@@ -464,6 +472,7 @@ int make_dir(unsigned short inum){
     dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
     dir->file_type = EXT2_FT_DIR;
     dir->inode = inum;
+    (ino_table+inum-1)->i_links_count++;
     strncpy(dir->name,"..",2);
     dir->name_len = 2;
     dir->rec_len = 1024 - count;       
@@ -563,9 +572,9 @@ int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path)
 int hard_link(unsigned short source_inode,unsigned short parent_inode){
     printf("Starting hard link process\n");
     if (dir_flag == 'd')
-        update_dir_entry(parent_inode,source_inode,new_name,EXT2_FT_SYMLINK);
+        update_dir_entry(parent_inode,source_inode,new_name,EXT2_FT_REG_FILE);
     else
-        update_dir_entry(parent_inode,source_inode,new_dir,EXT2_FT_SYMLINK);
+        update_dir_entry(parent_inode,source_inode,new_dir,EXT2_FT_REG_FILE);
     (ino_table+source_inode-1)->i_links_count++;
     
     return 0;
@@ -651,22 +660,23 @@ int remove_file(unsigned short parent_inode, char* f_name){
             //handles case where deleting first entry in dir_entry
             {
             if ( strcmp(dir->name,f_name) == 0){
-                //handles hard link case
-                 //decrease link count by 1,  if reaches 0 after decrement, free inode and block
-                // if count == 0, continue, else return
-                set_bitmap(disk+(1024 * gd->bg_inode_bitmap),dir->inode - 1,'0');
-                construct_bitmap(32, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
-                sb->s_free_inodes_count++;
-                gd->bg_free_inodes_count++;
-                (ino_table + dir->inode - 1)->i_dtime = (int)time(NULL);
-                free_blocks(dir->inode);
+                if ((ino_table + dir->inode - 1)->i_links_count == 1){
+                    set_bitmap(disk+(1024 * gd->bg_inode_bitmap),dir->inode - 1,'0');
+                    construct_bitmap(32, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
+                    sb->s_free_inodes_count++;
+                    gd->bg_free_inodes_count++;
+                    (ino_table + dir->inode - 1)->i_dtime = (int)time(NULL);
+                    free_blocks(dir->inode);    
+                }
+                else
+                    (ino_table + dir->inode - 1)->i_links_count --;
                 dir->inode = 0;
                 // the only entry in the block
                 if (dir->rec_len == 1024){
                     set_bitmap(disk+(1024 * gd->bg_block_bitmap),block - 1,'0');
                     construct_bitmap(128, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
-                    sb->s_free_inodes_count++;
-                    gd->bg_free_inodes_count++;
+                    sb->s_free_blocks_count++;
+                    gd->bg_free_blocks_count++;
                     (ino_table+parent_inode-1)->i_size-= 1024;
                 }
                 printf("first entry rmed\n");
@@ -676,27 +686,39 @@ int remove_file(unsigned short parent_inode, char* f_name){
             //checks the next entry and update reclen if found match
              next = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
              if (strcmp(next->name,f_name) == 0){
-                 //handles hard link case
-                 //decrease link count by 1,  if reaches 0 after decrement, free inode and block
-                 // if count == 0, continue, else return
-                 set_bitmap(disk+(1024 * gd->bg_inode_bitmap),next->inode - 1,'0');
-                 construct_bitmap(32, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
-                 for(int i = 0 ; i < 32 ; i ++){
-                     printf("%u",inode_bitmap[i]);
+                 if ((ino_table + dir->inode - 1)->i_links_count == 1){
+                     set_bitmap(disk+(1024 * gd->bg_inode_bitmap),next->inode - 1,'0');
+                     construct_bitmap(32, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
+                     sb->s_free_inodes_count++;
+                     gd->bg_free_inodes_count++;
+                     (ino_table + next->inode - 1)->i_dtime = (int)time(NULL);
+                     free_blocks(next->inode);
                  }
-                 puts("");
-                 sb->s_free_inodes_count++;
-                 gd->bg_free_inodes_count++;
+                 else
+                     (ino_table + dir->inode - 1)->i_links_count --;
+                                 // the only entry in the block
                  dir->rec_len += next->rec_len;
-                 (ino_table + next->inode - 1)->i_dtime = (int)time(NULL);
-                 free_blocks(next->inode);
+                 if (dir->rec_len == 1024){
+                    set_bitmap(disk+(1024 * gd->bg_block_bitmap),block - 1,'0');
+                    construct_bitmap(128, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
+                    sb->s_free_blocks_count++;
+                    gd->bg_free_blocks_count++;
+                    (ino_table+parent_inode-1)->i_size-= 1024;
+                }
                  printf("entry rmed\n");
+                 // the only entry in the block
+                if (dir->rec_len == 1024){
+                    set_bitmap(disk+(1024 * gd->bg_block_bitmap),block - 1,'0');
+                    construct_bitmap(128, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
+                    sb->s_free_blocks_count++;
+                    gd->bg_free_blocks_count++;
+                    (ino_table+parent_inode-1)->i_size-= 1024;
+                }
                  return 0;
              }
-             if (! (dir->rec_len == 1024)){
+             
                 dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
                 count += (int)dir->rec_len;
-             }
         }
     }
     return -EINVAL;
@@ -718,45 +740,26 @@ int restore_file(unsigned short parent_inode, char* f_name){
         count = offset;
         
         while (count < 1024){
-
- 
-            //handles case where restoring first entry in dir_entry
-            {// needs modification
-            if ( strcmp(dir->name,f_name) == 0){
-                //handles hard link case
-                 //decrease link count by 1,  if reaches 0 after decrement, free inode and block
-                // if count == 0, continue, else return
-                set_bitmap(disk+(1024 * gd->bg_inode_bitmap),dir->inode - 1,'0');
-                construct_bitmap(32, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
-                sb->s_free_inodes_count++;
-                gd->bg_free_inodes_count++;
-                (ino_table + dir->inode - 1)->i_dtime = (int)time(NULL);
-                free_blocks(dir->inode);
-                dir->inode = 0;
-                // the only entry in the block
-                if (dir->rec_len == 1024){
-                    set_bitmap(disk+(1024 * gd->bg_block_bitmap),block - 1,'0');
-                    construct_bitmap(128, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
-                    sb->s_free_inodes_count++;
-                    gd->bg_free_inodes_count++;
-                    (ino_table+parent_inode-1)->i_size-= 1024;
-                }
-                printf("first entry rmed\n");
-                return 0;
-            }
-            }
+            //if first entry is removed, ftree_visit will never be able to find it, thus it is non-recoverable
             //checks the next entry and update reclen if found match
              if (dir->rec_len != actual_size){
                 offset = actual_size;
             }
              next = (struct ext2_dir_entry *)((char *)dir + offset);
+             //if we are restoring a file in a freed block,reallocate it
+             // block usage is already checked in free_visit, so it is guaranteed to be free
              if (strcmp(next->name,f_name) == 0){
+                 if (block_bitmap[block-1] == 0){
+                    set_bitmap(disk+(1024 * gd->bg_block_bitmap),block - 1,'1');
+                    construct_bitmap(128, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
+                    sb->s_free_blocks_count--;
+                    gd->bg_free_blocks_count--;
+                    (ino_table+parent_inode-1)->i_size+= 1024;
+                     
+                 }
+                 //hard links will not be handled as stated in assignment handout
                  set_bitmap(disk+(1024 * gd->bg_inode_bitmap),next->inode - 1,'1');
                  construct_bitmap(32, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
-                 for(int i = 0 ; i < 32 ; i ++){
-                     printf("%u",inode_bitmap[i]);
-                 }
-                 puts("");
                  sb->s_free_inodes_count--;
                  gd->bg_free_inodes_count--;
                  dir->rec_len -= next->rec_len;
@@ -765,11 +768,11 @@ int restore_file(unsigned short parent_inode, char* f_name){
                  printf("entry restored\n");
                  return 0;
              }
-             if (! (dir->rec_len == 1024)){
+
                 dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
                 count += offset;
                 offset = dir->rec_len;
-             }
+             
         }
     }
     return -EINVAL;
