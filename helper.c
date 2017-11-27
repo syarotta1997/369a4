@@ -739,11 +739,11 @@ int restore_file(unsigned short parent_inode, char* f_name){
     int block,count,offset;
     struct ext2_dir_entry *dir;
     struct ext2_dir_entry *next;
-    struct ext2_dir_entry* cur = dir;
+    struct ext2_dir_entry* cur;
     for (int i = 0; i < 12; i++){
         block = ino_table[parent_inode - 1].i_block[i];
         dir = (struct ext2_dir_entry *)(disk + (1024* block));
-        
+        cur = dir;
         offset = dir->rec_len;
         count = offset;
         
