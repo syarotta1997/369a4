@@ -208,6 +208,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                             return result;
                     }
                 }
+                return result;
             }   
         }
         if ((cur->rec_len != actual_size) && (strcmp(type, "restore") == 0)){
