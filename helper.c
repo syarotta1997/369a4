@@ -765,6 +765,7 @@ int restore_file(unsigned short parent_inode, char* f_name){
                     sb->s_free_blocks_count--;
                     gd->bg_free_blocks_count--;
                     (ino_table+parent_inode-1)->i_size+= 1024;
+                    (ino_table+parent_inode-1)->i_blocks += 2 ;
                      
                  }
                  //hard links will not be handled as stated in assignment handout
