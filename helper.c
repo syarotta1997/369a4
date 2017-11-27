@@ -792,10 +792,11 @@ int restore_file(unsigned short parent_inode, char* f_name){
              }
              else{
                  cur = (struct ext2_dir_entry *)((char *)dir +cur->rec_len);
+                 dir = (struct ext2_dir_entry *)((char *)dir + dir->rec_len);
              }
              
              count += offset;
-                offset = dir->rec_len;
+             offset = dir->rec_len;
             
              
         }
