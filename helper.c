@@ -658,6 +658,7 @@ int remove_file(unsigned short parent_inode, char* f_name){
         strncpy(name, dir->name, dir->name_len);
                 
         while (count < 1024){
+
             
             //handles case where deleting first entry in dir_entry
             {
@@ -687,6 +688,10 @@ int remove_file(unsigned short parent_inode, char* f_name){
             }
             //checks the next entry and update reclen if found match
              next = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
+                         int actual_size = sizeof(struct ext2_dir_entry) + dir->name_len;
+            if (actual_size % 4 != 0){
+                actual_size =4*(actual_size/4) + 4;
+            }
              char next_name[next->name_len+1];
              memset(next_name, '\0', next->name_len+1);
              strncpy(next_name, next->name, next->name_len);
@@ -734,6 +739,7 @@ int restore_file(unsigned short parent_inode, char* f_name){
     int block,count,offset;
     struct ext2_dir_entry *dir;
     struct ext2_dir_entry *next;
+    struct ext2_dir_entry* cur = dir;
     for (int i = 0; i < 12; i++){
         block = ino_table[parent_inode - 1].i_block[i];
         dir = (struct ext2_dir_entry *)(disk + (1024* block));
@@ -742,20 +748,20 @@ int restore_file(unsigned short parent_inode, char* f_name){
         count = offset;
         
         while (count < 1024){
+            printf("cur->%s  dir->%s\n",cur->name,dir->name);
             int actual_size = sizeof(struct ext2_dir_entry) + dir->name_len;
             if (actual_size % 4 != 0){
                 actual_size =4*(actual_size/4) + 4;
             }
-            //if first entry is removed, ftree_visit will never be able to find it, thus it is non-recoverable
-            //checks the next entry and update reclen if found match
              if (dir->rec_len != actual_size){
                 offset = actual_size;
             }
+            
              next = (struct ext2_dir_entry *)((char *)dir + offset);
              char name[next->name_len+1];
              memset(name, '\0', next->name_len+1);
              strncpy(name, next->name, next->name_len);
-             printf("%s %s\n",name,f_name);
+             
              //if we are restoring a file in a freed block,reallocate it
              // block usage is already checked in free_visit, so it is guaranteed to be free
              if (strcmp(name,f_name) == 0){
@@ -773,17 +779,23 @@ int restore_file(unsigned short parent_inode, char* f_name){
                  construct_bitmap(32, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
                  sb->s_free_inodes_count--;
                  gd->bg_free_inodes_count--;
-                 dir->rec_len -= next->rec_len;
+                 cur->rec_len -= next->rec_len;
                  (ino_table + next->inode - 1)->i_dtime = 0;
                  reallocate_blocks(next->inode);
                  printf("entry restored\n");
                  return 0;
              }
-             if (dir->rec_len != actual_size)
+             if (dir->rec_len != actual_size){
                 offset = actual_size;
-            dir = (struct ext2_dir_entry *)((char *)dir +offset);
-            count += offset;
-            offset = dir->rec_len;
+                dir = (struct ext2_dir_entry *)((char *)dir +offset);
+                offset = dir->rec_len;
+             }
+             else{
+                 cur = (struct ext2_dir_entry *)((char *)dir +cur->rec_len);
+                 dir = (struct ext2_dir_entry *)((char *)dir +dir->rec_len);
+                 count += cur->rec_len;
+             }
+            
              
         }
     }
