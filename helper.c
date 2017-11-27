@@ -119,7 +119,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     struct ext2_dir_entry * cur = dir;
     struct path_lnk* new_p;
     
-    if (cur->inode){
+    if (cur->inode == 0){
         cur = (struct ext2_dir_entry *)((char *)cur + cur->rec_len);
     }
    
