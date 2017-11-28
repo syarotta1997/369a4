@@ -257,7 +257,7 @@ void check_all(struct ext2_dir_entry * dir, unsigned short p_inode){
         cur = (struct ext2_dir_entry *)((char *)cur + cur->rec_len);
     }
    
-    int count = (int)cur->rec_len; 
+    int count = 0; 
       
     printf("============== layer [ %d ]================\n\n",dir->inode);
     while ( count < 1024 ){
@@ -285,8 +285,6 @@ void check_all(struct ext2_dir_entry * dir, unsigned short p_inode){
                 
             }   
         //prevents seg fault at count == size
-        if (count == 1024)
-            break;
         cur = (struct ext2_dir_entry *)((char *)cur + cur->rec_len);
         count += cur->rec_len;
     }
