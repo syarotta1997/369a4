@@ -261,7 +261,7 @@ void check_all(struct ext2_dir_entry * dir, unsigned short p_inode){
       
     printf("============== layer [ %d ]================\n\n",dir->inode);
     while ( count < 1024 ){
-            printf(" %s -- current at inode[%d]  rec_len: %d  %s\n",dir->name,cur->inode,cur->rec_len,cur->name);
+            printf(" -- current at inode[%d]  rec_len: %d  %s\n",cur->inode,cur->rec_len,cur->name);
             cur_inode = (struct ext2_inode*) (ino_table+cur->inode-1);       
             num_fixed += check_mode(cur_inode, cur);
             num_fixed += check_inode(cur->inode);
