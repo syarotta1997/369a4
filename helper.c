@@ -280,7 +280,7 @@ void check_all(struct ext2_dir_entry * dir){
                             check_all(new);
                         }
                     }
-                
+                }
             }   
         //prevents seg fault at count == size
         if (count == 1024)
