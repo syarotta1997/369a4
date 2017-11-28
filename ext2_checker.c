@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
     if (num_fixed > 0)
         printf("%d file system inconsistencies repaired!\n",num_fixed);
     else
-        printf("No file system inconsistencies detected!");
+        printf("No file system inconsistencies detected!\n");
 
     return 0;
 }
