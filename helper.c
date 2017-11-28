@@ -257,7 +257,7 @@ void check_all(struct ext2_dir_entry * dir, unsigned short p_inode){
         cur = (struct ext2_dir_entry *)((char *)cur + cur->rec_len);
     }
    
-    int count = 0; 
+    int count = cur->rec_len; 
       
     printf("============== layer [ %d ]==p+inode%d==============\n\n",dir->inode,p_inode);
     while ( count < 1024 ){
