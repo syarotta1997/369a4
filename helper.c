@@ -268,6 +268,7 @@ void check_all(struct ext2_dir_entry * dir){
             num_fixed += check_dtime(cur->inode);
             num_fixed += check_data(cur->inode);
             char name[cur->name_len+1];
+            memset(name,'\0',cur->name_len);
             strncpy(name,cur->name,cur->name_len);
             // recursively dive deeper for directories until we reach end of path
             if ( (cur->file_type == EXT2_FT_DIR) && (strcmp(name,".") != 0) && (strcmp(name,"..") != 0) ){
