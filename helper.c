@@ -847,7 +847,8 @@ int check_free(){
     //[free block count, free inode count, group flag, type flag]
     int flags[2];
     memset(flags,0,2*sizeof(int));
-    int difference = 0;
+    int total_difference = 0;
+    int difference;
     
     for (int i = 0; i < 128; i ++){
         if (block_bitmap[i] == 0)
@@ -857,25 +858,29 @@ int check_free(){
     }
     if (flags[0] != (int) sb->s_free_blocks_count){
         difference = abs(flags[0] - sb->s_free_blocks_count);
+        total_difference += difference;
         sb->s_free_blocks_count = flags[0];
         printf("Superblock's free blocks counter was off by %d compared to the bitmap\n",difference);
     }
-    else if (flags[0] != (int)gd->bg_free_blocks_count){
+    if (flags[0] != (int)gd->bg_free_blocks_count){
         difference += abs(flags[0] - gd->bg_free_blocks_count);
+        total_difference += difference;
         gd->bg_free_blocks_count = flags[0];
         printf("Block group's free blocks counter was off by %d compared to the bitmap\n",difference);
     }
-    else if (flags[1] != (int)sb->s_free_inodes_count){
+    if (flags[1] != (int)sb->s_free_inodes_count){
         difference += abs(flags[1] - sb->s_free_inodes_count);
+        total_difference += difference;
         sb->s_free_inodes_count = flags[1];
         printf("Superblock's free inodes counter was off by %d compared to the bitmap\n",difference);
     }
-    else if (flags[1] != (int)gd->bg_free_inodes_count){
+    if (flags[1] != (int)gd->bg_free_inodes_count){
         difference += abs(flags[1] - gd->bg_free_inodes_count);
+        total_difference += difference;
         gd->bg_free_inodes_count = flags[1];
         printf("Block group's free inodes counter was off by %d compared to the bitmap\n",difference);
     }
-    return difference; 
+    return total_difference; 
 }
 
 int check_mode(struct ext2_inode* inode, struct ext2_dir_entry* dir){ 
