@@ -268,13 +268,15 @@ void check_all(struct ext2_dir_entry * dir){
             num_fixed += check_dtime(cur->inode);
             num_fixed += check_data(cur->inode);
             // recursively dive deeper for directories until we reach end of path
-            if ( (cur->file_type == EXT2_FT_DIR) && (strcmp(cur->name,".") != 0) && (strcmp(cur->name,"..") != 0)){
+            if ( (cur->file_type == EXT2_FT_DIR) && (strcmp(cur->name,".") != 0) && (strcmp(cur->name,"..") != 0) ){
                 //deep iteration search: iterate all direct blocks and recursively search for path
-                for (int index = 0; index < 13; index++){
-                    int block_num = ino_table[cur->inode-1].i_block[index];
-                    if ( block_num != 0 ){
-                        new = (struct ext2_dir_entry *)(disk + (1024* block_num));
-                        check_all(new);
+                if ( ! (cur->inode == 2 && strcmp(cur->name,"lost+found") == 0)){
+                    for (int index = 0; index < 13; index++){
+                        int block_num = ino_table[cur->inode-1].i_block[index];
+                        if ( block_num != 0 ){
+                            new = (struct ext2_dir_entry *)(disk + (1024* block_num));
+                            check_all(new);
+                        }
                     }
                 }
             }   
