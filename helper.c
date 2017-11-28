@@ -889,7 +889,7 @@ int check_mode(struct ext2_inode* inode, struct ext2_dir_entry* dir){
 }
 
 int check_inode(unsigned short inode_num){
-    if (inode_bitmap[inode_num] != 1){
+    if (inode_bitmap[inode_num-1] != 1){
         set_bitmap(disk+(1024 * gd->bg_inode_bitmap), inode_num - 1,'1');
         construct_bitmap(32, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
         sb->s_free_inodes_count --;
