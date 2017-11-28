@@ -846,7 +846,7 @@ int restore_file(unsigned short parent_inode, char* f_name){
 
 int check_free(){
     //[free block count, free inode count, group flag, type flag]
-    unsigned int flags[2] = {0};
+    int flags[2] = {0};
     int difference = 0;
     
     for (int i = 0; i < 128; i ++){
@@ -855,22 +855,22 @@ int check_free(){
         if ( i < 32 && inode_bitmap[i] == 0)
             flags[1] += 1;
     }
-    if (flags[0] != sb->s_free_blocks_count){
+    if (flags[0] != (int) sb->s_free_blocks_count){
         difference = abs(flags[0] - sb->s_free_blocks_count);
         sb->s_free_blocks_count = flags[0];
         printf("Superblock's free blocks counter was off by %d compared to the bitmap\n",difference);
     }
-    else if (flags[0] != gd->bg_free_blocks_count){
+    else if (flags[0] != (int)gd->bg_free_blocks_count){
         difference += abs(flags[0] - gd->bg_free_blocks_count);
         gd->bg_free_blocks_count = flags[0];
         printf("Block group's free blocks counter was off by %d compared to the bitmap\n",difference);
     }
-    else if (flags[1] != sb->s_free_inodes_count){
+    else if (flags[1] != (int)sb->s_free_inodes_count){
         difference += abs(flags[1] - sb->s_free_inodes_count);
         sb->s_free_inodes_count = flags[1];
         printf("Superblock's free inodes counter was off by %d compared to the bitmap\n",difference);
     }
-    else if (flags[1] != gd->bg_free_blocks_count){
+    else if (flags[1] != (int)gd->bg_free_blocks_count){
         difference += abs(flags[1] - gd->bg_free_inodes_count);
         gd->bg_free_inodes_count = flags[1];
         printf("Block group's free inodes counter was off by %d compared to the bitmap\n",difference);
