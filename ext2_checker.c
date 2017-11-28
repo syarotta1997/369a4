@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
     sb = (struct ext2_super_block *)(disk + 1024);
     gd = (struct ext2_group_desc *)(disk + (1024*2) );
     construct_bitmap(128, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
-    construct_bitmap(sb->s_inodes_count, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
+    construct_bitmap(32, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
     }
     int root_block = ino_table[1].i_block[0];
