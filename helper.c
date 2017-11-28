@@ -177,7 +177,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                 }
             }
             // recursively dive deeper for directories until we reach end of path
-            else if (cur->file_type == EXT2_FT_DIR){
+            else if ( (cur->file_type == EXT2_FT_DIR) && (cur->inode != dir->inode) && (cur->inode != p_inode)){
                 //check first to see it it's the end of path and handles cases based on function type
                 if (p->next == NULL){
                     if (strcmp(type,"mkdir") == 0){
