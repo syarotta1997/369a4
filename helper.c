@@ -23,6 +23,7 @@ struct path_lnk* p;
 char* new_dir;
 char* new_name;
 char dir_flag;
+int num_fixed;
 
 //
 //            UTILITY FUNCTIONS
@@ -244,6 +245,44 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     }
     //technically shouldn't reach here as all type cases are handled above
     return -EINVAL;
+    }
+}
+
+void check_all(struct ext2_dir_entry * dir){
+    struct ext2_dir_entry * new;
+    struct ext2_dir_entry * cur = dir;
+    struct ext2_inode* cur_inode;
+    
+    if (cur->inode == 0){
+        cur = (struct ext2_dir_entry *)((char *)cur + cur->rec_len);
+    }
+   
+    int count = (int)cur->rec_len; 
+      
+    printf("============== layer [ %s ],inode : %d,size : %d\n\n",dir->name,count,size);
+    while ( count <= 1024 ){
+            printf(" %s -- current at %s,  %d    %d   , %d,   count %d\n",dir->name,cur->inode,actual_size,cur->rec_len,count);        
+            cur_inode = (struct ext2_inode*) (ino_table+cur->inode-1);       
+            num_fixed += check_mode(cur_inode, cur);
+            num_fixed += check_inode(cur->inode);
+            num_fixed += check_dtime(cur->inode);
+            num_fixed += check_data(cur->inode);
+            // recursively dive deeper for directories until we reach end of path
+            if ( (cur->file_type == EXT2_FT_DIR) && (strcmp(cur->name,".") != 0) && (strcmp(cur->name,"..") != 0)){
+                //deep iteration search: iterate all direct blocks and recursively search for path
+                for (int index = 0; index < 13; index++){
+                    int block_num = ino_table[cur->inode-1].i_block[index];
+                    if ( block_num != 0 ){
+                        new = (struct ext2_dir_entry *)(disk + (1024* block_num));
+                        check_all(new);
+                    }
+                }
+            }   
+        //prevents seg fault at count == size
+        if (count == size)
+            break;
+        cur = (struct ext2_dir_entry *)((char *)cur + cur->rec_len);
+        count += cur->rec_len;
     }
 }
 
@@ -736,7 +775,7 @@ int remove_file(unsigned short parent_inode, char* f_name){
 
 int restore_file(unsigned short parent_inode, char* f_name){
     printf("will perform restore on file:%s\n\n",f_name);
-    int block,count,offset, gap_count;
+    int block,count, gap_count,actual_size,diff;
     struct ext2_dir_entry *dir;
     struct ext2_dir_entry* cur;
     for (int i = 0; i < 12; i++){
@@ -744,17 +783,16 @@ int restore_file(unsigned short parent_inode, char* f_name){
         if (block != 0){
             dir = (struct ext2_dir_entry *)(disk + (1024* block));
             cur = dir;
-            offset = dir->rec_len;
             count = dir->rec_len;
             while (count <= 1024){
                 printf("cur->%s  dir->%s\n",cur->name,dir->name);
-                int actual_size = sizeof(struct ext2_dir_entry) + dir->name_len;
+                actual_size = sizeof(struct ext2_dir_entry) + dir->name_len;
                 if (actual_size % 4 != 0){
                     actual_size =4*(actual_size/4) + 4;
                 }
                 cur = (struct ext2_dir_entry *)((char *)dir + actual_size);
                 gap_count = actual_size;
-                int diff = dir->rec_len;
+                diff = dir->rec_len;
 
                 while ( gap_count < diff ){
 
@@ -783,7 +821,6 @@ int restore_file(unsigned short parent_inode, char* f_name){
                              printf("entry restored\n");
                              return 0;
                  }
-
                         actual_size = sizeof(struct ext2_dir_entry) + cur->name_len;
                         if (actual_size % 4 != 0){
                             actual_size =4*(actual_size/4) + 4;
@@ -793,11 +830,108 @@ int restore_file(unsigned short parent_inode, char* f_name){
                 }
                 if (count == 1024)
                     break;
-
                 dir = (struct ext2_dir_entry *)((char *)dir + dir->rec_len);
                 count += dir->rec_len;
             }
         }
     }
     return -EINVAL;
+}
+
+int check_free(){
+    //[free block count, free inode count, group flag, type flag]
+    int flags[2] = {0};
+    int difference = 0;
+    
+    for (int i = 0; i < 128; i ++){
+        if (block_bitmap[i] == 0)
+            flags[0] += 1;
+        if ( i < 32 && inode_bitmap[i] == 0)
+            flags[1] += 1;
+    }
+    if (flags[0] != sb->s_free_blocks_count){
+        difference = abs(flags[0] - sb->s_free_blocks_count);
+        sb->s_free_blocks_count = flags[0];
+        printf("Superblock's free blocks counter was off by %d compared to the bitmap\n",difference);
+    }
+    if (flags[0] != gd->bg_free_blocks_count){
+        difference += abs(flags[0] - gd->bg_free_blocks_count);
+        gd->bg_free_blocks_count = flags[0];
+        printf("Block group's free blocks counter was off by %d compared to the bitmap\n",difference);
+    }
+    if (flags[1] != sb->s_free_inodes_count){
+        difference += abs(flags[1] - sb->s_free_inodes_count);
+        sb->s_free_inodes_count = flags[1];
+        printf("Superblock's free inodes counter was off by %d compared to the bitmap\n",difference);
+    }
+    if (flags[1] != gd->bg_free_blocks_count){
+        difference += abs(flags[1] - gd->bg_free_inodes_count);
+        gd->bg_free_inodes_count = flags[1];
+        printf("Block group's free inodes counter was off by %d compared to the bitmap\n",difference);
+    }
+    return difference; 
+}
+
+int check_mode(struct ext2_inode* inode, struct ext2_dir_entry* dir){ 
+    if ( (inode->i_mode == EXT2_S_IFREG) && (dir->file_type != EXT2_FT_REG_FILE))
+        return 1;
+    else if ( (inode->i_mode == EXT2_S_IFDIR) && (dir->file_type != EXT2_FT_DIR) )
+        return 1;
+    else if ( (inode->i_mode == EXT2_S_IFLNK) && (dir->file_type != EXT2_FT_SYMLINK) )
+        return 1;
+    return 0;
+}
+
+int check_inode(unsigned short inode_num){
+    if (inode_bitmap[inode_num] != 1){
+        set_bitmap(disk+(1024 * gd->bg_inode_bitmap), inode_num - 1,'1');
+        construct_bitmap(32, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
+        sb->s_free_inodes_count --;
+        gd->bg_free_inodes_count --;
+        printf("Fixed: inode [%d] not marked as in-use\n",inode_num);
+        return 1;
+    }
+    return 0;    
+}
+
+int check_dtime(unsigned short inode_num){
+    struct ext2_inode* inode = (struct ext2_inode*) (ino_table+inode_num-1);
+    if (inode->i_dtime != 0){
+        inode->i_dtime = 0;
+        printf("Fixed: valid inode marked for deletion: [%d]\n",inode_num);
+        return 1;
+    }
+    return 0;
+}
+
+int check_data(unsigned short inode_num){
+    int fix_count = 0;
+    struct ext2_inode* inode = (struct ext2_inode*) (ino_table+inode_num-1);
+    if (inode->i_block[12] != 0){
+        struct single_indirect_block* sib = (struct single_indirect_block*)(disk + (1024* inode->i_block[12]) );
+        for (int i = 0 ; i < 256; i ++){
+            if (sib->blocks[i] != 0 && block_bitmap[sib->blocks[i] - 1] == 0){
+                    set_bitmap(disk+(1024 * gd->bg_block_bitmap), sib->blocks[i] - 1,'1');
+                    construct_bitmap(128, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
+                    sb->s_free_blocks_count --;
+                    gd->bg_free_blocks_count --;
+                    fix_count ++;
+            }
+        }
+    }
+    for (int i = 0 ; i < 12 ; i ++){
+        int block = ( ino_table + inode_num - 1 )->i_block[i];
+        if ( block != 0 && block_bitmap[block - 1] == 0){
+                set_bitmap(disk+(1024 * gd->bg_block_bitmap), block - 1,'1');
+                construct_bitmap(128, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
+                sb->s_free_blocks_count --;
+                gd->bg_free_blocks_count --;
+                fix_count ++;
+        }
+    }
+    if (fix_count > 0){
+        printf("Fixed: %d in-use data blocks not marked in data bitmap for inode: [%d]\n",fix_count,inode_num);
+        return 1;
+    }
+    return 0;
 }

@@ -15,6 +15,12 @@
 #define FREE 0
 #define IN_USE 1
 
+#define SUPERBLOCK 2
+#define BLOCK_GROUP 3
+
+#define INODE_FLAG 4
+#define BLOCK_FLAG 5
+
 //Self defined helper functions and structs
 struct path_lnk{
     char name[255];
@@ -35,6 +41,7 @@ extern unsigned char inode_bitmap[32];
 extern struct path_lnk* p;
 extern char* new_dir;
 extern char dir_flag;
+extern int num_fixed;
 //function declarations for util functions
 void construct_path_linkedlst(char* path);
 void construct_bitmap(size_t const size, void const * const ptr, char type);
