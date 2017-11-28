@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
     struct ext2_dir_entry *dir = (struct ext2_dir_entry *)(disk + (1024* root_block));
     num_fixed = 0;
     num_fixed += check_free();
-    check_all(dir);
+    check_all(dir, 2);
     
     if (num_fixed > 0)
         printf("%d file system inconsistencies repaired!\n",num_fixed);

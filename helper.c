@@ -248,7 +248,7 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     }
 }
 
-void check_all(struct ext2_dir_entry * dir){
+void check_all(struct ext2_dir_entry * dir, unsigned short p_inode){
     struct ext2_dir_entry * new;
     struct ext2_dir_entry * cur = dir;
     struct ext2_inode* cur_inode;
@@ -267,19 +267,19 @@ void check_all(struct ext2_dir_entry * dir){
             num_fixed += check_inode(cur->inode);
             num_fixed += check_dtime(cur->inode);
             num_fixed += check_data(cur->inode);
-            char name[cur->name_len+1];
-            memset(name,'\0',cur->name_len);
-            strncpy(name,cur->name,cur->name_len);
             // recursively dive deeper for directories until we reach end of path
-            if ( (cur->file_type == EXT2_FT_DIR) && (strcmp(name,".") != 0) && (strcmp(name,"..") != 0) ){
+            if ( (cur->file_type == EXT2_FT_DIR) && (cur->inode != dir->inode) && (cur->inode != p_inode) ){
                 printf("found directory\n");
+                char name[cur->name_len+1];
+                memset(name,'\0',cur->name_len);
+                strncpy(name,cur->name,cur->name_len);
                 //deep iteration search: iterate all direct blocks and recursively search for path
-                if ( ! (dir->inode == 2 && strcmp(name,"lost+found") == 0)){
+                if ( ! (dir->inode == 2 && cur->inode == 11)){
                     for (int index = 0; index < 13; index++){
                         int block_num = ino_table[cur->inode-1].i_block[index];
                         if ( block_num != 0 ){
                             new = (struct ext2_dir_entry *)(disk + (1024* block_num));
-                            check_all(new);
+                            check_all(new,cur->inode);
                         }
                     }
                 }
