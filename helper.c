@@ -279,7 +279,7 @@ void check_all(struct ext2_dir_entry * dir, unsigned short p_inode){
                         int block_num = ino_table[cur->inode-1].i_block[index];
                         if ( block_num != 0 ){
                             new = (struct ext2_dir_entry *)(disk + (1024* block_num));
-                            check_all(new,cur->inode);
+                            check_all(new,dir->inode);
                         }
                     }
                 
