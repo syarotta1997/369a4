@@ -847,7 +847,7 @@ int restore_file(unsigned short parent_inode, char* f_name){
 int check_free(){
     //[free block count, free inode count, group flag, type flag]
     int flags[2];
-    memset(flags,0,2);
+    memset(flags,0,2*sizeof(int));
     int difference = 0;
     
     for (int i = 0; i < 128; i ++){
