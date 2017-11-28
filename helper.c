@@ -274,7 +274,7 @@ void check_all(struct ext2_dir_entry * dir, unsigned short p_inode){
                 memset(name,'\0',cur->name_len);
                 strncpy(name,cur->name,cur->name_len);
                 //deep iteration search: iterate all direct blocks and recursively search for path
-                if ( ! (dir->inode == 2 && cur->inode == 11)){
+       
                     for (int index = 0; index < 13; index++){
                         int block_num = ino_table[cur->inode-1].i_block[index];
                         if ( block_num != 0 ){
@@ -282,7 +282,7 @@ void check_all(struct ext2_dir_entry * dir, unsigned short p_inode){
                             check_all(new,cur->inode);
                         }
                     }
-                }
+                
             }   
         //prevents seg fault at count == size
         if (count == 1024)
