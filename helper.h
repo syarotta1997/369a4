@@ -67,5 +67,5 @@ int check_mode(struct ext2_inode* inode, struct ext2_dir_entry* dir);
 int check_inode(unsigned short inode_num);
 int check_dtime(unsigned short inode_num);
 int check_data(unsigned short inode_num);
-void check_all(struct ext2_dir_entry * dir);
+void check_all(struct ext2_dir_entry * dir,unsigned short p_inode);
 #endif // __HEALPER_H
