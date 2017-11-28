@@ -871,7 +871,7 @@ int check_free(){
         sb->s_free_inodes_count = flags[1];
         printf("Superblock's free inodes counter was off by %d compared to the bitmap\n",difference);
     }
-    else if (flags[1] != (int)gd->bg_free_blocks_count){
+    else if (flags[1] != (int)gd->bg_free_inodes_count){
         difference += abs(flags[1] - gd->bg_free_inodes_count);
         gd->bg_free_inodes_count = flags[1];
         printf("Block group's free inodes counter was off by %d compared to the bitmap\n",difference);
