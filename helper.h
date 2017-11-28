@@ -62,4 +62,10 @@ int hard_link(unsigned short source_inode,unsigned short parent_inode);
 int sym_link(unsigned short parent_inode, char* path);
 int remove_file(unsigned short parent_inode, char* f_name);
 int restore_file(unsigned short parent_inode, char* f_name);
+int check_free();
+int check_mode(struct ext2_inode* inode, struct ext2_dir_entry* dir);
+int check_inode(unsigned short inode_num);
+int check_dtime(unsigned short inode_num);
+int check_data(unsigned short inode_num);
+void check_all(struct ext2_dir_entry * dir);
 #endif // __HEALPER_H
