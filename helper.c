@@ -271,6 +271,7 @@ void check_all(struct ext2_dir_entry * dir){
             strncpy(name,cur->name,cur->name_len);
             // recursively dive deeper for directories until we reach end of path
             if ( (cur->file_type == EXT2_FT_DIR) && (strcmp(name,".") != 0) && (strcmp(name,"..") != 0) ){
+                printf("found directory\n");
                 //deep iteration search: iterate all direct blocks and recursively search for path
                 if ( ! (dir->inode == 2 && strcmp(name,"lost+found") == 0)){
                     for (int index = 0; index < 13; index++){
