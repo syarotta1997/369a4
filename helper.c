@@ -290,6 +290,7 @@ void check_all(struct ext2_dir_entry * dir, unsigned short p_inode){
         //prevents seg fault at count == size
         cur = (struct ext2_dir_entry *)((char *)cur + cur->rec_len);
         count += cur->rec_len;
+        puts("-------------------");
     }
 }
 
