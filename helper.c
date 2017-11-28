@@ -268,7 +268,7 @@ void check_all(struct ext2_dir_entry * dir, unsigned short p_inode){
             num_fixed += check_dtime(cur->inode);
             num_fixed += check_data(cur->inode);
             // recursively dive deeper for directories until we reach end of path
-            if ( (cur->file_type == EXT2_FT_DIR) && (cur->inode != dir->inode) && (cur->inode != p_inode) ){
+            if ( (cur->file_type == EXT2_FT_DIR) && (cur->inode != 0) && (cur->inode != dir->inode) && (cur->inode != p_inode) ){
                 printf("found directory\n");
                 char name[cur->name_len+1];
                 memset(name,'\0',cur->name_len);
