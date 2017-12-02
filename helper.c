@@ -450,7 +450,6 @@ int make_dir(unsigned short inum){
     for (int idx = 0; idx < 12 ; idx ++){
         if (node->i_block[idx] == 0){
             node->i_block[idx] = block_num;
-            flag = 0;
             break;
         } 
     }
