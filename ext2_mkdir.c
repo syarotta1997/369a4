@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
     char * path = (char*)argv[2];
     construct_path_linkedlst(path);
     if ( (strcmp(p->name,"/"))==0 && p->next==NULL){
-        printf("%s : %s Root directory cannot be created\n",argv[0],p->name);
+        fprintf(stderr,"%s : %s Root directory cannot be created\n",argv[0],p->name);
         return ENOENT;
     }
     sb = (struct ext2_super_block *)(disk + 1024);
