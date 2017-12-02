@@ -436,32 +436,33 @@ int update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, u
  *                                            EXT2 functions
  *==================================================*/
 int make_dir(unsigned short inum){
-    struct ext2_dir_entry * dir;
     int count,inode_index,block_num;
     // Allocating and writing to new inode section and new directory entry
     inode_index = allocate_inode();
+    if (inode_index < 0)
+        return inode_index;
     init_inode(inode_index, 1024, 'd');
     struct ext2_inode* node = ino_table + inode_index;
     block_num = allocate_block( inode_index );
-    //for this assignment we don't need to handle indirect blocks for directories
+    if (block_num < 0)
+        return block_num;
+    //try to assign block to next available slot in block
     for (int idx = 0; idx < 12 ; idx ++){
-        if ( node->i_block[idx] == 0){
+        if (node->i_block[idx] == 0){
             node->i_block[idx] = block_num;
-            printf("Assigned block #%d to node->i_block.\n",block_num);
+            flag = 0;
             break;
         } 
     }
     //Allocate empty directory entry and writes to it with current dir and parent dir entries
-    //cur dir
-    dir = (struct ext2_dir_entry *)(disk + (1024* (node->i_block[0])));
+    struct ext2_dir_entry * dir = (struct ext2_dir_entry *)(disk + (1024* (node->i_block[0])));
     dir->file_type = EXT2_FT_DIR;
     dir->inode = inode_index + 1;
     strncpy(dir->name,".",1);
     dir->name_len = 1;
     dir->rec_len = sizeof(struct ext2_dir_entry) + dir->name_len;
-    if (dir->rec_len % 4 != 0){
+    if (dir->rec_len % 4 != 0)
         dir->rec_len = 4*(dir->rec_len / 4) + 4;
-    }
     count = dir->rec_len;
     //parent dir
     dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
@@ -471,16 +472,15 @@ int make_dir(unsigned short inum){
     strncpy(dir->name,"..",2);
     dir->name_len = 2;
     dir->rec_len = 1024 - count;       
-    if (dir->rec_len % 4 != 0){
+    if (dir->rec_len % 4 != 0)
         dir->rec_len =4*(dir->rec_len / 4) + 4;
-    }
-    
-    printf("DONE init new dir entry\n");
-
     // Updating parent directory entry (note will make this another helper function)
     gd->bg_used_dirs_count+=1;
-    update_dir_entry(inum, inode_index + 1, new_dir, EXT2_FT_DIR);
-    return 0;
+    int update = update_dir_entry(inum, inode_index + 1, new_dir, EXT2_FT_DIR);
+    if (update < 0)
+        return update;
+    else
+        return 0;
 }
 
 int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path){
@@ -493,26 +493,27 @@ int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path)
          if (total_blocks > 12 )
              total_blocks ++;
          int blocks[total_blocks];
-         
-         printf("total blocks needed for this file:%d\n",total_blocks);
-         
          //Preallocate blocks and inode for copying file
         int i_index = allocate_inode();
+        if (i_index < 0)
+            return i_index;
         inode = i_index + 1;
         //Filling in all needed info of newly allocated inode
         init_inode(i_index, fsize, 'f');
         struct ext2_inode* node = ino_table + i_index;
         //Allocate all blocks needed and store block number into predefined bookmark array
         int allocated = 0;
+        struct single_indirect_block* sib;
         while (allocated < total_blocks){
             int block_num = allocate_block(i_index);
+            if (block_num < 0)
+                return block_num;
             //assigns block number to direct data blocks
             if (allocated < 12){
                 node->i_block[allocated] = block_num;        
             }
             //needs to allocate single indirect block and assigns to it
             else{
-                struct single_indirect_block* sib;
                 if (allocated == 12){
                     node->i_block[allocated] = block_num;
                     sib = (struct single_indirect_block*)(disk + (1024* (block_num)) );
@@ -522,17 +523,10 @@ int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path)
                     int index = allocated % 12;
                     sib->blocks[index] = block_num;
                 }
-                printf("block allocating with single indirect done\n");
             }
             blocks[allocated] = block_num;
             allocated++;
         }
-        printf("done allocating all blocks needed to copy file:\n");
-        for (int i = 0 ; i < total_blocks ; i ++){
-            printf("[%d] ",blocks[i]);
-        }
-        puts("");
-
          //Perform raw data copying using fopen / fread
          FILE *file = fopen( (const char*)source_path, "rb");
          if (file == NULL){
@@ -546,36 +540,41 @@ int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path)
          int total_read = 0;
          //start reading from source file one block at a time and copy to disk image
          while ( (b_read = fread(buffer, 1, 1024, file)) > 0){
-             if (block_count == total_blocks)
-                 printf("block_count reached total blocks, index error\n");
              total_read += (int)b_read;
              memcpy( (disk + 1024*blocks[block_count]), buffer, 1024);
              memset(buffer, 0, 1024);
              block_count ++;
          }
-         printf("finished memory copying with total %d bytes, file size is %d bytes\n",total_read,fsize);
-         //update parent directory
-         if (dir_flag == 'd')
-             update_dir_entry(parent_inode,inode,new_name,EXT2_FT_REG_FILE);
-         else
-             update_dir_entry(parent_inode,inode,new_dir,EXT2_FT_REG_FILE);
          fclose(file);
-         return 0;
+         //update parent directory
+         int update;
+         if (dir_flag == 'd'){
+             update = update_dir_entry(parent_inode,inode,new_name,EXT2_FT_REG_FILE);
+         }
+         else{
+             update = update_dir_entry(parent_inode,inode,new_dir,EXT2_FT_REG_FILE);
+         }
+         if (update < 0)
+             return update;
+         else
+             return 0;
  }
 
 int hard_link(unsigned short source_inode,unsigned short parent_inode){
-    printf("Starting hard link process\n");
+    int update;
     if (dir_flag == 'd')
-        update_dir_entry(parent_inode,source_inode,new_name,EXT2_FT_REG_FILE);
+        update = update_dir_entry(parent_inode,source_inode,new_name,EXT2_FT_REG_FILE);
     else
-        update_dir_entry(parent_inode,source_inode,new_dir,EXT2_FT_REG_FILE);
-    (ino_table+source_inode-1)->i_links_count++;
-    
-    return 0;
+        update = update_dir_entry(parent_inode,source_inode,new_dir,EXT2_FT_REG_FILE);
+    if (update < 0)
+        return update;
+    else{
+        (ino_table+source_inode-1)->i_links_count++;
+        return 0;
+    }
 }
 
 int sym_link(unsigned short parent_inode, char* path){
-    printf("Starting sym link process\n");
     int num_blocks,inode;
     int path_len = strlen(path) + 1;
     if (path_len%1024 != 0)
@@ -585,21 +584,25 @@ int sym_link(unsigned short parent_inode, char* path){
     int blocks[num_blocks];
     //Preallocate blocks and inode for copying file
         int i_index = allocate_inode();
+        if (i_index < 0)
+            return i_index;
         inode = i_index + 1;
         //Filling in all needed info of newly allocated inode
         init_inode(i_index, path_len, 'l');
         struct ext2_inode* node = ino_table + i_index;
         //Allocate all blocks needed and store block number into predefined bookmark array
         int allocated = 0;
+        struct single_indirect_block* sib;
         while (allocated < num_blocks){
             int block_num = allocate_block(i_index);
+            if (block_num < 0)
+                return block_num;
             //assigns block number to direct data blocks
             if (allocated < 12){
                 node->i_block[allocated] = block_num;        
             }
             //needs to allocate single indirect block and assigns to it
             else{
-                struct single_indirect_block* sib;
                 if (allocated == 12){
                     node->i_block[allocated] = block_num;
                     sib = (struct single_indirect_block*)(disk + (1024* (block_num)) );
