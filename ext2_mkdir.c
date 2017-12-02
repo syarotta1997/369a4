@@ -37,13 +37,13 @@ int main(int argc, char **argv) {
     construct_path_linkedlst(path);
     if ( (strcmp(p->name,"/"))==0 && p->next==NULL){
         printf("%s : %s Root directory cannot be created\n",argv[0],p->name);
-        return EINVAL;
+        return ENOENT;
     }
     sb = (struct ext2_super_block *)(disk + 1024);
     gd = (struct ext2_group_desc *)(disk + (1024*2) );
     if (gd->bg_free_blocks_count ==0 || gd->bg_free_inodes_count == 0)
         return ENOSPC;
-    construct_bitmap(DISK_BLOCK, (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
+    construct_bitmap( 128 , (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
     construct_bitmap(sb->s_inodes_count, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
     //
