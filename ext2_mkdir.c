@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     construct_bitmap( 128 , (char *)(disk+(1024 * gd->bg_block_bitmap)), 'b');
     construct_bitmap(sb->s_inodes_count, (char *)(disk+(1024 * gd->bg_inode_bitmap)), 'i');
     ino_table = (struct ext2_inode *)(disk + 1024*(gd->bg_inode_table));
-    //
+    //construct root directory for file walk and perform make dir operation
     int root_block,result;
     root_block = ino_table[1].i_block[0];
     struct ext2_dir_entry *dir = (struct ext2_dir_entry *)(disk + (1024* root_block));
@@ -54,8 +54,11 @@ int main(int argc, char **argv) {
     if (result < 0)
         return -result;
     else{
-        make_dir(result);
+        int stat = make_dir(result);
+        destroy_list();
+        if (stat < 0)
+            return -stat;
+        else
+            return 0;
     }
-    destroy_list();
-    return 0;
 }
