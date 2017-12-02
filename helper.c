@@ -58,10 +58,6 @@ void construct_path_linkedlst(char* path){
         new_dir = "/";
     else
         new_dir = new->name;
-    for (struct path_lnk* i = p; i != NULL; i = i->next){
-        printf("%s ",i->name);
-    }
-    puts("");
 }
 //A function that frees the path linked list
 void destroy_list(){
@@ -71,7 +67,6 @@ void destroy_list(){
         cur = cur->next;
         free(to_free);
     }
-    printf("path link list destroyed\n");
 }
 //Updates the bitmap based on disk memory
 void construct_bitmap(size_t const size, void const * const ptr, char type){
@@ -113,7 +108,6 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
     int count = (int)cur->rec_len; 
     int size = ino_table[cur->inode - 1].i_size;
     int offset = cur->rec_len;   
-    printf("============== layer [ %s ],inode : %d,size : %d\n\n",dir->name,count,size);
     while ( count <= size ){
         char name[cur->name_len+1];
         memset(name, '\0', cur->name_len+1);
@@ -222,9 +216,7 @@ void check_all(struct ext2_dir_entry * dir, unsigned short p_inode){
     if (cur->inode == 0)
         cur = (struct ext2_dir_entry *)((char *)cur + cur->rec_len);
     int count = cur->rec_len; 
-    printf("============== layer [ %d ]==p+inode%d==============\n\n",dir->inode,p_inode);
     while ( count <= 1024 ){
-            printf(" -- current at inode[%d]  rec_len: %d  %s\n",cur->inode,cur->rec_len,cur->name);
             cur_inode = (struct ext2_inode*) (ino_table+cur->inode-1);       
             num_fixed += check_mode(cur_inode, cur);
             num_fixed += check_inode(cur->inode);
@@ -333,7 +325,6 @@ int allocate_inode(){
             if (! inode_bitmap[i] & 1){
                 gd->bg_free_inodes_count --;
                 sb->s_free_inodes_count --;
-                printf("will allocate inode #%d\n",i+1);
                 set_bitmap(disk+(1024 * gd->bg_inode_bitmap),i,'1');
                 construct_bitmap(32, (char *)disk+(1024 * gd->bg_inode_bitmap), 'i');
                 return i;
@@ -423,7 +414,6 @@ int update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, u
                 }
                 dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
                 count += (int)dir->rec_len;
-                printf("end ,count now is %d\n",count);
             }
         }
     }
@@ -610,14 +600,9 @@ int sym_link(unsigned short parent_inode, char* path){
                     int index = allocated % 12;
                     sib->blocks[index] = block_num;
                 }
-                printf("block allocating with single indirect done\n");
             }
             blocks[allocated] = block_num;
             allocated++;
-        }
-        printf("done allocating all blocks needed to copy file:\n");
-        for (int i = 0 ; i < num_blocks ; i ++){
-            printf("[%d] ",blocks[i]);
         }
         char byte;
         int bytes_read = 0;
