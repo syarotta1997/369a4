@@ -121,7 +121,6 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
         int actual_size = sizeof(struct ext2_dir_entry) + cur->name_len;
         if (actual_size % 4 != 0)
             actual_size =4*(actual_size/4) + 4;
-        printf(" %s -- current at %s,  %d    %d   , %d,   count %d\n",dir->name,name,cur->inode,actual_size,cur->rec_len,count);
         //only cares if we can find a match in the file names
         if (strcmp(name,p->name) == 0){
             // reached end of path with an existing file, for both mkdir and cp case return EEXIST
@@ -574,14 +573,14 @@ int hard_link(unsigned short source_inode,unsigned short parent_inode){
 }
 
 int sym_link(unsigned short parent_inode, char* path){
-    int num_blocks,inode;
-    int path_len = strlen(path) + 1;
-    if (path_len%1024 != 0)
-        num_blocks = path_len/4 + 1;
-    else
-        num_blocks = path_len/4;
-    int blocks[num_blocks];
-    //Preallocate blocks and inode for copying file
+        int num_blocks,inode;
+        int path_len = strlen(path) + 1;
+        if (path_len%1024 != 0)
+            num_blocks = path_len/4 + 1;
+        else
+            num_blocks = path_len/4;
+        int blocks[num_blocks];
+        //Preallocate blocks and inode for copying file
         int i_index = allocate_inode();
         if (i_index < 0)
             return i_index;
@@ -630,20 +629,19 @@ int sym_link(unsigned short parent_inode, char* path){
             if(bytes_read%1024 == 0)
                 block_count++;
         }
-        
-        puts("");
-                 printf("finished memory copying with total %d bytes, file size is %d bytes\n",bytes_read,path_len);
          //update parent directory
+        int update;
         if (dir_flag == 'd')
-            update_dir_entry(parent_inode,inode,new_name,EXT2_FT_SYMLINK);
+            update = update_dir_entry(parent_inode,inode,new_name,EXT2_FT_SYMLINK);
         else
-            update_dir_entry(parent_inode,inode,new_dir,EXT2_FT_SYMLINK);
-        
-    return 0;
+            update = update_dir_entry(parent_inode,inode,new_dir,EXT2_FT_SYMLINK);
+        if (update < 0)
+            return update;
+        else
+            return 0;
 }
 
 int remove_file(unsigned short parent_inode, char* f_name){
-    printf("will perform remove on file:%s\n\n",f_name);
     int block,count;
     struct ext2_dir_entry *dir;
     struct ext2_dir_entry *next;
@@ -656,10 +654,7 @@ int remove_file(unsigned short parent_inode, char* f_name){
         strncpy(name, dir->name, dir->name_len);
                 
         while (count < 1024){
-
-            
             //handles case where deleting first entry in dir_entry
-            {
             if ( strcmp(name,f_name) == 0){
                 if ((ino_table + dir->inode - 1)->i_links_count == 1){
                     set_bitmap(disk+(1024 * gd->bg_inode_bitmap),dir->inode - 1,'0');
@@ -680,19 +675,17 @@ int remove_file(unsigned short parent_inode, char* f_name){
                     gd->bg_free_blocks_count++;
                     (ino_table+parent_inode-1)->i_size-= 1024;
                 }
-                printf("first entry rmed\n");
                 return 0;
             }
-            }
             //checks the next entry and update reclen if found match
-             next = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
-                         int actual_size = sizeof(struct ext2_dir_entry) + dir->name_len;
-            if (actual_size % 4 != 0){
+            next = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
+            int actual_size = sizeof(struct ext2_dir_entry) + dir->name_len;
+            if (actual_size % 4 != 0)
                 actual_size =4*(actual_size/4) + 4;
-            }
              char next_name[next->name_len+1];
              memset(next_name, '\0', next->name_len+1);
              strncpy(next_name, next->name, next->name_len);
+             
              if (strcmp(next_name,f_name) == 0){
                  if ((ino_table + next->inode - 1)->i_links_count == 1){
                      set_bitmap(disk+(1024 * gd->bg_inode_bitmap),next->inode - 1,'0');
@@ -704,7 +697,7 @@ int remove_file(unsigned short parent_inode, char* f_name){
                  }
                  else
                      (ino_table + next->inode - 1)->i_links_count --;
-                                 // the only entry in the block
+                 // the only entry in the block
                  dir->rec_len += next->rec_len;
                  if (dir->rec_len == 1024){
                     set_bitmap(disk+(1024 * gd->bg_block_bitmap),block - 1,'0');
@@ -713,7 +706,6 @@ int remove_file(unsigned short parent_inode, char* f_name){
                     gd->bg_free_blocks_count++;
                     (ino_table+parent_inode-1)->i_size-= 1024;
                 }
-                 printf("entry rmed\n");
                  // the only entry in the block
                 if (dir->rec_len == 1024){
                     set_bitmap(disk+(1024 * gd->bg_block_bitmap),block - 1,'0');
@@ -724,19 +716,20 @@ int remove_file(unsigned short parent_inode, char* f_name){
                 }
                  return 0;
              }
-             
                 dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
                 count += (int)dir->rec_len;
         }
     }
+    //in theory the inputs of function ensures the file to be removed does exist in disk
+    //this is guaranteed by ftree_visit function
     return -EINVAL;
 }
 
 int restore_file(unsigned short parent_inode, char* f_name){
-    printf("will perform restore on file:%s\n\n",f_name);
     int block,count, gap_count,actual_size,diff;
     struct ext2_dir_entry *dir;
     struct ext2_dir_entry* cur;
+    
     for (int i = 0; i < 12; i++){
         block = ino_table[parent_inode - 1].i_block[i];
         if (block != 0){
@@ -744,21 +737,17 @@ int restore_file(unsigned short parent_inode, char* f_name){
             cur = dir;
             count = dir->rec_len;
             while (count <= 1024){
-                printf("cur->%s  dir->%s\n",cur->name,dir->name);
                 actual_size = sizeof(struct ext2_dir_entry) + dir->name_len;
-                if (actual_size % 4 != 0){
+                if (actual_size % 4 != 0)
                     actual_size =4*(actual_size/4) + 4;
-                }
                 cur = (struct ext2_dir_entry *)((char *)dir + actual_size);
                 gap_count = actual_size;
                 diff = dir->rec_len;
 
                 while ( gap_count < diff ){
-
                         char name[cur->name_len+1];
                         memset(name, '\0', cur->name_len+1);
                         strncpy(name, cur->name, cur->name_len);
-                        printf("%s %d \n",cur->name,gap_count);
                         if (strcmp(name,f_name) == 0){
                              if (block_bitmap[block-1] == 0){
                                 set_bitmap(disk+(1024 * gd->bg_block_bitmap),block - 1,'1');
@@ -777,13 +766,11 @@ int restore_file(unsigned short parent_inode, char* f_name){
                              cur->rec_len = diff - gap_count;
                              (ino_table + cur->inode - 1)->i_dtime = 0;
                              reallocate_blocks(cur->inode);
-                             printf("entry restored\n");
                              return 0;
-                 }
-                        actual_size = sizeof(struct ext2_dir_entry) + cur->name_len;
-                        if (actual_size % 4 != 0){
-                            actual_size =4*(actual_size/4) + 4;
                         }
+                        actual_size = sizeof(struct ext2_dir_entry) + cur->name_len;
+                        if (actual_size % 4 != 0)
+                            actual_size =4*(actual_size/4) + 4;
                         cur = (struct ext2_dir_entry *)((char *)cur + actual_size);
                         gap_count += actual_size;
                 }
@@ -794,6 +781,8 @@ int restore_file(unsigned short parent_inode, char* f_name){
             }
         }
     }
+    //in theory the inputs of function ensures the file to be removed does exist in disk
+    //this is guaranteed by ftree_visit function
     return -EINVAL;
 }
 
