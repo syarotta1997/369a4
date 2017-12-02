@@ -9,7 +9,6 @@
 #include <errno.h>
 #include "ext2.h"
 #include "helper.h"
-#define DISK_BLOCK 128
 
 extern unsigned char *disk;
 extern struct ext2_super_block *sb;
@@ -26,9 +25,6 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Usage: %s <image file name> <absolute path to directory>\n", argv[0]);
         return ENOENT;
     }
-    
-    char * path = (char*)argv[2];
-
     //mapping memory onto disk and construct reference data structures
     int fd = open(argv[1], O_RDWR);
     disk = mmap(NULL, DISK_BLOCK * EXT2_BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
@@ -36,6 +32,8 @@ int main(int argc, char **argv) {
         perror("mmap");
         return ENOENT;
     }
+    
+    char * path = (char*)argv[2];
     construct_path_linkedlst(path);
     if ( (strcmp(p->name,"/"))==0 && p->next==NULL){
         printf("%s : %s Root directory cannot be created\n",argv[0],p->name);
