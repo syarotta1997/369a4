@@ -57,7 +57,7 @@ void init_inode(unsigned short inode_index, unsigned short size,char type );
 //function declarations for main functions
 int make_dir(unsigned short inum);
 int copy_file(struct stat* stats, unsigned short parent_inode,char* source_path);
-void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, unsigned char type);
+int update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, unsigned char type);
 int hard_link(unsigned short source_inode,unsigned short parent_inode);
 int sym_link(unsigned short parent_inode, char* path);
 int remove_file(unsigned short parent_inode, char* f_name);

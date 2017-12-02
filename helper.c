@@ -11,8 +11,6 @@
 #include "ext2.h"
 #include "helper.h"
 
-
-
 unsigned char *disk;
 struct ext2_super_block *sb;
 struct ext2_group_desc *gd;
@@ -25,19 +23,10 @@ char* new_name;
 char dir_flag;
 int num_fixed;
 
-//
-//            UTILITY FUNCTIONS
-//
-/* 
- * A helper function that takes an absolute path as an argument and construct
- * a linked list with each node containing the name of a component between 2 slashes
- * (i.e. file name / directory name). In this way the trailing slashes will be handled and this list
- * will aid in comparing names while traversing inodes in disk image.
- * This function assumes all paths are absolute, which will start with root directory "/"
- * 
- * e.g.          construct_path_linkedlst("/usr/bin/csc369")
- *                '/' -> ''usr   ->  'bin' -> '369'
- */
+/*===============================================
+ *                                      Utility Functions
+ ================================================*/
+//Constructs a linked list of file names given a path
 void construct_path_linkedlst(char* path){
     struct path_lnk* new = NULL;
     struct path_lnk* cur = NULL;
@@ -74,9 +63,7 @@ void construct_path_linkedlst(char* path){
     }
     puts("");
 }
-/*
- * 
- */
+//A function that frees the path linked list
 void destroy_list(){
     struct path_lnk* cur = p;
     while (cur != NULL){
@@ -86,7 +73,7 @@ void destroy_list(){
     }
     printf("path link list destroyed\n");
 }
-
+//Updates the bitmap based on disk memory
 void construct_bitmap(size_t const size, void const * const ptr, char type){
     unsigned char *b = (unsigned char*) ptr;
     unsigned char byte;
@@ -103,7 +90,7 @@ void construct_bitmap(size_t const size, void const * const ptr, char type){
         }
     }
 }
-
+//Set specific bit on the disk memory
 void set_bitmap(unsigned char* ptr, int index,char type){
     unsigned char *b = ptr;
     int i, j;
@@ -114,77 +101,69 @@ void set_bitmap(unsigned char* ptr, int index,char type){
     else if(type == '0')
         *(b+i) = *(b+i) ^ (1 << j);
 }
-
+//The major function that looks for a specific file given the path and returns either an inode number
+//based on the type of requesting function, or a negative errno macro
 int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path_lnk* p, char* type){
     struct ext2_dir_entry * new;
     struct ext2_dir_entry * cur = dir;
     struct path_lnk* new_p;
-    
-    if (cur->inode == 0){
+    //skips invalid inodes 
+    if (cur->inode == 0)
         cur = (struct ext2_dir_entry *)((char *)cur + cur->rec_len);
-    }
-   
     int count = (int)cur->rec_len; 
     int size = ino_table[cur->inode - 1].i_size;
-    int offset = cur->rec_len;
-      
+    int offset = cur->rec_len;   
     printf("============== layer [ %s ],inode : %d,size : %d\n\n",dir->name,count,size);
     while ( count <= size ){
         char name[cur->name_len+1];
         memset(name, '\0', cur->name_len+1);
         strncpy(name, cur->name, cur->name_len);
         int actual_size = sizeof(struct ext2_dir_entry) + cur->name_len;
-        if (actual_size % 4 != 0){
-        actual_size =4*(actual_size/4) + 4;
-        }
+        if (actual_size % 4 != 0)
+            actual_size =4*(actual_size/4) + 4;
         printf(" %s -- current at %s,  %d    %d   , %d,   count %d\n",dir->name,name,cur->inode,actual_size,cur->rec_len,count);
         //only cares if we can find a match in the file names
         if (strcmp(name,p->name) == 0){
-            
             // reached end of path with an existing file, for both mkdir and cp case return EEXIST
             if (cur->file_type == EXT2_FT_REG_FILE || cur->file_type == EXT2_FT_SYMLINK){
+                //reached a file with path not finished-> the given path is invalid
                 if (p->next != NULL)
                     return -ENOENT;
-                if ( strcmp(type,"mkdir")==0 || strcmp(type,"cp")==0 || strcmp(type,"ln_l")==0){
-                    printf("%s: Already exists\n", name);
+                if ( strcmp(type,"mkdir")==0 || strcmp(type,"cp")==0 || strcmp(type,"ln_l")==0)
                     return -EEXIST;
-                }
-                else if (strcmp(type,"ln_s") == 0){
+                else if (strcmp(type,"ln_s") == 0)
                     return cur->inode;
-                }
                 else if (strcmp(type,"rm") == 0){
                     new_name = p->name;
-                    printf("rm - file name:%s\n",p->name);
                     return p_inode;
                 }
+                //in restore case, first check if inode is valid, then checks the inode's blocks
                 else if (strcmp(type,"restore") == 0){
                     if (inode_bitmap[cur->inode - 1] == 0){
                         int status = check_blocks(cur->inode);
-                        if (status == IN_USE){
-                            printf("restore found file, but blocks were overwritten\n");
+                        if (status == IN_USE)
                             return -ENOENT;
-                        }
                         else{
-                            printf("restore : %s\n",p->name);
                             new_name = p->name;
                             return p_inode;
                         }
                     }
                     else{
-                        printf("%d : inode in use\n",inode_bitmap[cur->inode - 1]);
                         return -ENOENT;
                     }
                 }
-            }
+            }      
             // recursively dive deeper for directories until we reach end of path
+            //we are also putting a restriction not to dive back to parent directory or current directory
             else if ( (cur->file_type == EXT2_FT_DIR) && (cur->inode != dir->inode) && (cur->inode != p_inode)){
                 //check first to see it it's the end of path and handles cases based on function type
                 if (p->next == NULL){
-                    if (strcmp(type,"mkdir") == 0){
-                        printf("%s: Already exists\n", name);
+                    if (strcmp(type,"mkdir") == 0)
                         return -EEXIST;
-                    }
                     else if (strcmp(type,"cp") == 0 || strcmp(type,"ln_l") == 0){
+                        //indicating we are making a new file under this directory
+                        //but also have to forward-check if the file exists, so make a new component in path link list
+                        //and continue checking
                         dir_flag = 'd';
                         new_p = malloc(sizeof(struct path_lnk));
                         memset(new_p->name,'\0',256);
@@ -192,11 +171,8 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                         new_p->next = NULL;
                         p->next = new_p;
                     }
-                    else if (strcmp(type,"ln_s") == 0 || strcmp(type,"rm") == 0 || strcmp(type,"restore") == 0){
-                        puts("");
-                        printf("Directories are not valid inputs for this function\n");
+                    else if (strcmp(type,"ln_s") == 0 || strcmp(type,"rm") == 0 || strcmp(type,"restore") == 0)
                         return -EISDIR;
-                    }
                 }
                 //deep iteration search: iterate all direct blocks and recursively search for path
                 int result;
@@ -212,8 +188,8 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
                 return result;
             }   
         }
+        //for restore case, we are also checking the gaps between directory entries
         if ((cur->rec_len != actual_size) && (strcmp(type, "restore") == 0)){
-            printf("found possible gap\n");
             offset = actual_size;
         }
         //prevents seg fault at count == size
@@ -221,44 +197,32 @@ int ftree_visit(struct ext2_dir_entry * dir, unsigned short p_inode ,struct path
             break;
         cur = (struct ext2_dir_entry *)((char *)cur + offset);
         count += offset;
-        offset = cur->rec_len;
-        
+        offset = cur->rec_len;  
     }
     //===finished traversing current layer of directory block and does not find target===============
-    {
     // Case 1 : Something wrong happened in the middle of given path
-    if (p->next != NULL){
-        printf("%s: not found\n",p->name);
+    if (p->next != NULL)
         return -ENOENT;
-    }
     //Case 2: Reached end of path where no target dir / file is found
     else{
-        // in mkdir / cp case, has reached end of path and ensured validity to mkdir, return parent's inode
-        if ( strcmp(type,"mkdir") == 0 || strcmp(type,"cp") == 0 || strcmp(type,"ln_l") == 0){
-            printf("%s need to be maked under parent inode %d \n", p->name, p_inode);
+        // file to be maked is not found in disk, can continue making it 
+        if ( strcmp(type,"mkdir") == 0 || strcmp(type,"cp") == 0 || strcmp(type,"ln_l") == 0)
             return p_inode;
-        }
-        else if (strcmp(type,"ln_s") == 0 || strcmp(type,"rm") == 0 || strcmp(type,"restore") == 0){
-            printf("%s source file does not exist %d \n", p->name, p_inode);
+        // file to be linked or removed or restored not found in disk
+        else if (strcmp(type,"ln_s") == 0 || strcmp(type,"rm") == 0 || strcmp(type,"restore") == 0)
             return -ENOENT;
-        }
     }
     //technically shouldn't reach here as all type cases are handled above
     return -EINVAL;
-    }
 }
-
+//A functions that traverses all valid directory entries and checks for status of each file/link/directory
 void check_all(struct ext2_dir_entry * dir, unsigned short p_inode){
     struct ext2_dir_entry * new;
     struct ext2_dir_entry * cur = dir;
     struct ext2_inode* cur_inode;
-    
-    if (cur->inode == 0){
+    if (cur->inode == 0)
         cur = (struct ext2_dir_entry *)((char *)cur + cur->rec_len);
-    }
-   
     int count = cur->rec_len; 
-      
     printf("============== layer [ %d ]==p+inode%d==============\n\n",dir->inode,p_inode);
     while ( count <= 1024 ){
             printf(" -- current at inode[%d]  rec_len: %d  %s\n",cur->inode,cur->rec_len,cur->name);
@@ -269,12 +233,10 @@ void check_all(struct ext2_dir_entry * dir, unsigned short p_inode){
             num_fixed += check_data(cur->inode);
             // recursively dive deeper for directories until we reach end of path
             if ( (cur->file_type == EXT2_FT_DIR) && (cur->inode != dir->inode) && (cur->inode != p_inode) ){
-                printf("found directory\n");
                 char name[cur->name_len+1];
                 memset(name,'\0',cur->name_len);
                 strncpy(name,cur->name,cur->name_len);
-                //deep iteration search: iterate all direct blocks and recursively search for path
-       
+                    //deep iteration search: iterate all direct blocks and recursively search for path
                     for (int index = 0; index < 13; index++){
                         int block_num = ino_table[cur->inode-1].i_block[index];
                         if ( block_num != 0 ){
@@ -282,18 +244,16 @@ void check_all(struct ext2_dir_entry * dir, unsigned short p_inode){
                             if (new->inode != 0)
                                 check_all(new,dir->inode);
                         }
-                    }
-                
+                    } 
             }   
             if (count == 1024)
                 break;
         //prevents seg fault at count == size
         cur = (struct ext2_dir_entry *)((char *)cur + cur->rec_len);
         count += cur->rec_len;
-        puts("-------------------");
     }
 }
-
+//Allocates a block and sets the bit in the disk img, return error if no space is available
 int allocate_block(){
         for(int block = 0; block < 128; block++){
             if (! block_bitmap[block] & 1){
@@ -304,11 +264,11 @@ int allocate_block(){
                 return block + 1;
             }
         }
-        printf("oops,all blocks seems to be occupied\n");
         return -ENOSPC;
 }
-
+//Free all data blocks of an inode but unsetting bitmap and updates super block, group block free block counts
 void free_blocks(int inode){
+    //handles single indirect block if there is any
     if ((ino_table+inode-1)->i_block[12] != 0){
         struct single_indirect_block* sib = (struct single_indirect_block*)(disk + (1024* (ino_table+inode-1)->i_block[12]) );
         for (int i = 0 ; i < 256; i ++){
@@ -318,7 +278,6 @@ void free_blocks(int inode){
                 sb->s_free_blocks_count++;
                 gd->bg_free_blocks_count ++;
             }
-            
         }
     }
     for (int i = 0 ; i < 12 ; i ++){
@@ -330,7 +289,7 @@ void free_blocks(int inode){
         }
     }
 }
-
+//Reallocates all previously allocated blocks for an inode and updates data fields
 void reallocate_blocks(int inode){
         if ((ino_table+inode-1)->i_block[12] != 0){
         struct single_indirect_block* sib = (struct single_indirect_block*)(disk + (1024* (ino_table+inode-1)->i_block[12]) );
@@ -353,7 +312,7 @@ void reallocate_blocks(int inode){
         }
     }
 }
-
+//Checks if an inode's data blocks are all in use or free
 int check_blocks(int inode){
     if ((ino_table+inode-1)->i_block[12] != 0){
         struct single_indirect_block* sib = (struct single_indirect_block*)(disk + (1024* (ino_table+inode-1)->i_block[12]) );
@@ -369,7 +328,7 @@ int check_blocks(int inode){
     }
     return FREE;
 }
-
+//Allocates an free inode and sets bits, return error if no available inode is present
 int allocate_inode(){
         for(int i = 0; i < 32; i++){
             if (! inode_bitmap[i] & 1){
@@ -381,10 +340,9 @@ int allocate_inode(){
                 return i;
             }
         }
-        printf("oops,all blocks seems to be occupied\n");
         return -ENOSPC;
 }
-
+//Initialize inode fields based on given type
 void init_inode(unsigned short inode_index, unsigned short size,char type ){
         struct ext2_inode* node = ino_table + inode_index;
         if ( size % 512 != 0 )
@@ -413,38 +371,33 @@ void init_inode(unsigned short inode_index, unsigned short size,char type ){
             node->i_links_count = 1;
             node->i_mode = EXT2_S_IFLNK;
         }
-        printf("done initializing inode\n");
 }
-
-void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, unsigned char type){
+//updates the new directory entry based on given arguments and sets necessary fields
+int update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, unsigned char type){
     int count,size;
     struct ext2_dir_entry * dir;
     int new_size = sizeof(struct ext2_dir_entry) + strlen(name);
-        if (new_size % 4 != 0){
-            new_size =4*(new_size) + 4;
-        }
-    
+    if (new_size % 4 != 0)
+        new_size =4*(new_size) + 4;
+    //we are only writing to the end block of the last free directory entry block
     for (int i = 12 ; i > 0 ; i -- ){
         if (ino_table[inum-1].i_block[i-1] != 0){
             int dir_block_num = ino_table[inum-1].i_block[i-1];
-            printf("locate parent dir block num at %d\n",dir_block_num);
             dir = (struct ext2_dir_entry *)(disk + (1024* (dir_block_num)) );
             count = dir->rec_len;
-            printf("begin %d with rec_len %d \n",dir->inode,count);        
             while (count <= 1024){
                 //reached at end pointer of this current block
                 if (count == 1024){       
                     size = sizeof(struct ext2_dir_entry)+dir->name_len;
-                        if (size % 4 != 0){
-                            size =4*(size / 4) + 4;
-                        }
-                    printf("reached end block inode %d,size %d,new size %d\n",dir->inode,size,new_size);
+                    if (size % 4 != 0)
+                        size =4*(size / 4) + 4;
                     count = dir->rec_len - size;
-                    //no space, need to allocate new block
+                    //no space, need to allocate new block then updates directory
                     if ( count - new_size < 0){
-                        printf("allocate needed\n");
-                        //allocate new block
+                        //allocate new block and increase directory size
                         int block_num = allocate_block();
+                        if (block_num < 0)
+                            return block_num;
                         (ino_table+inum-1)->i_block[i] = block_num;
                         dir =(struct ext2_dir_entry *)(disk + (1024* (block_num)) );
                         dir->file_type = type;
@@ -457,23 +410,17 @@ void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, 
                     //there is space in this dir_block, add the new directory to it
                     else{
                         //changing current pointer from end of file to the new dir
-                        printf("size%d\n",size);
                         dir->rec_len = size;
                         dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
                         dir->file_type = type;
                         dir->inode = inode_num;
                         dir->name_len = strlen(name);
                         strncpy(dir->name,name,dir->name_len);
-                        
                         dir->rec_len = count;       
-                        if (dir->rec_len % 4 != 0){
+                        if (dir->rec_len % 4 != 0)
                             dir->rec_len =4*(dir->rec_len / 4) + 4;
-                        }
-                        
                     }
-                    //done updating, no point in looping
-                    printf("done updating parent dir, added inode %s,%d\n",dir->name,dir->rec_len);
-                    return;
+                    return 0;
                 }
                 dir = (struct ext2_dir_entry *)((char *)dir + (dir->rec_len));
                 count += (int)dir->rec_len;
@@ -481,11 +428,13 @@ void update_dir_entry(unsigned short inum, unsigned short inode_num,char* name, 
             }
         }
     }
+    //all non-gap data blocks are in use
+    return -ENOSPC;
 }
 
-//
-// MAIN METHOD FUNCTIONS
-//
+/*==================================================
+ *                                            EXT2 functions
+ *==================================================*/
 int make_dir(unsigned short inum){
     struct ext2_dir_entry * dir;
     int count,inode_index,block_num;
